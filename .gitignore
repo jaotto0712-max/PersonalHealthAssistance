@@ -1,0 +1,33 @@
+# --- Local data & models (never commit) ---
+data/**
+!data/.gitkeep
+models/**
+!models/.gitkeep
+!models/Modelfile*
+eval/results/
+
+# --- Secrets / local config ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+
+# --- Node ---
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# --- OS / editors ---
+.DS_Store
+.idea/
+.vscode/

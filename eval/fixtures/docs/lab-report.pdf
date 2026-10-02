@@ -1,0 +1,54 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 9 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 531 >>
+stream
+BT /F1 11 Tf 14 TL 60 740 Td (Gainesville Community Lab \(fictional\)) Tj T* (SYNTHETIC TEST DOCUMENT - FICTIONAL PATIENT - NOT REAL MEDICAL DATA) Tj T* (Patient: Jordan Sample    DOB: 1980-04-12    MRN: TEST-000123) Tj T* (Collected: 2026-08-14    Ordering clinician: Dr. Example) Tj T* () Tj T* (COMPLETE BLOOD COUNT \(CBC\)) Tj T* (White blood cells ....... 6.8 x10^3/uL   \(ref 4.0-11.0\)) Tj T* (Hemoglobin .............. 14.2 g/dL      \(ref 13.5-17.5\)) Tj T* (Platelets ............... 245 x10^3/uL   \(ref 150-400\)) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 9 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 554 >>
+stream
+BT /F1 11 Tf 14 TL 60 740 Td (SYNTHETIC TEST DOCUMENT - FICTIONAL PATIENT - NOT REAL MEDICAL DATA) Tj T* (LIPID PANEL \(fasting\)) Tj T* (Total cholesterol ....... 238 mg/dL   \(ref < 200\)   HIGH) Tj T* (LDL cholesterol ......... 162 mg/dL   \(ref < 100\)   HIGH) Tj T* (HDL cholesterol ......... 48 mg/dL    \(ref > 40\)) Tj T* (Triglycerides ........... 140 mg/dL   \(ref < 150\)) Tj T* () Tj T* (HEMOGLOBIN A1C) Tj T* (Hemoglobin A1C .......... 6.1 %       \(ref < 5.7\)   HIGH) Tj T* (Interpretation: 5.7-6.4 % is consistent with prediabetes.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 9 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 509 >>
+stream
+BT /F1 11 Tf 14 TL 60 740 Td (SYNTHETIC TEST DOCUMENT - FICTIONAL PATIENT - NOT REAL MEDICAL DATA) Tj T* (COMPREHENSIVE METABOLIC PANEL) Tj T* (Glucose, fasting ........ 108 mg/dL   \(ref 70-99\)   HIGH) Tj T* (Creatinine .............. 0.9 mg/dL   \(ref 0.7-1.3\)) Tj T* (eGFR .................... > 90 mL/min/1.73m2) Tj T* (ALT ..................... 28 U/L      \(ref 7-56\)) Tj T* (Potassium ............... 4.2 mmol/L  \(ref 3.5-5.1\)) Tj T* () Tj T* (Report reviewed electronically. End of report.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000000253 00000 n 
+0000000835 00000 n 
+0000000961 00000 n 
+0000001566 00000 n 
+0000001692 00000 n 
+0000002252 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+2322
+%%EOF

@@ -1,0 +1,17 @@
+schema: spec-driven
+
+context: |
+  Project: Personal Health Assistant — UF AI Passport, Clinical Application track, Project 7 (Capstone).
+  Source brief: https://uf-aibhs.github.io/AI-Passport-Impact-Project/clinical-application-project-07-capstone-health-assistant/
+  Goal: a fully local assistant that answers health questions using Phi-3-mini fine-tuned with LoRA
+  on MedQuAD, grounded at query time in documents the user uploads (RAG over Chroma).
+  Scope: capstone core only (no reuse of Projects 1-6 tools) + minimal safety layer (disclaimer, emergency check).
+
+  Tech stack:
+    - Training: Google Colab GPU, Python, transformers + peft + trl (QLoRA), base model microsoft/Phi-3-mini-4k-instruct
+    - Export/serving: merge adapter -> llama.cpp GGUF (Q4_K_M) -> Ollama on localhost
+    - Backend: Python 3.11, FastAPI, uv, ruff, pytest; Chroma (persistent, telemetry off); sentence-transformers embeddings
+    - Frontend: React + Vite + TypeScript + Tailwind, UF look & feel (Orange #FA4616, Blue #0021A5), no official UF logos
+  Hard constraint: at runtime NOTHING leaves the machine — no external network calls, no CDNs, no telemetry.
+  Training on public MedQuAD in the cloud is allowed; user documents and queries never leave the device.
+  Repo layout: backend/, frontend/, training/, eval/, models/ (gitignored), data/ (gitignored).

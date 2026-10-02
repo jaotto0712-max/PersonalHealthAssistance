@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+
+/*
+ * UF-inspired palette. Usage rules (WCAG AA, enforced by src/theme.test.ts):
+ *  - gator-orange (#FA4616) is 3.5:1 on white: use for accents, borders, icons, focus rings,
+ *    and filled buttons ONLY with white text at >= 20px bold (large-text exception).
+ *    Never use it for body-size text.
+ *  - gator-blue (#0021A5) is 11.9:1 on white: safe for text, links, and small controls.
+ *  - gator-blue-dark (#002657) for headings/body accents and text on orange-tint surfaces.
+ *  - alert-red for emergency UI only.
+ */
+@theme {
+  --font-sans: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+
+  --color-gator-orange: #fa4616;
+  --color-gator-orange-tint: #fff1eb;
+  --color-gator-blue: #0021a5;
+  --color-gator-blue-dark: #002657;
+  --color-gator-blue-tint: #eef1fb;
+  --color-gator-green: #2f7a3c;
+  --color-gator-green-dark: #1f5229;
+  --color-alert-red: #b91c1c;
+  --color-alert-tint: #fef2f2;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--color-gator-orange);
+    outline-offset: 2px;
+  }
+}

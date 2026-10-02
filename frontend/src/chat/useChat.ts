@@ -1,0 +1,83 @@
+import { useCallback, useEffect, useReducer, useRef } from 'react'
+
+import type { ApiClient } from '../api/types'
+import { chatReducer, initialChatState, toHistory } from './chatState'
+import { createTokenBatcher } from './tokenBatcher'
+
+const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError'
+
+export function useChat(client: ApiClient, onError: (message: string) => void) {
+  const [state, dispatch] = useReducer(chatReducer, initialChatState)
+  const stateRef = useRef(state)
+  const abortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
+  useEffect(() => () => abortRef.current?.abort(), [])
+
+  const send = useCallback(
+    async (text: string) => {
+      const message = text.trim()
+      if (!message || abortRef.current) return
+      const history = toHistory(stateRef.current.messages)
+      const id = crypto.randomUUID()
+      dispatch({ type: 'send', userId: crypto.randomUUID(), assistantId: id, text: message })
+
+      const controller = new AbortController()
+      abortRef.current = controller
+      const batcher = createTokenBatcher((t) => dispatch({ type: 'tokens', id, text: t }))
+      let finished = false
+      try {
+        for await (const event of client.chat({ message, history }, controller.signal)) {
+          switch (event.type) {
+            case 'meta':
+              if (event.data.emergency) dispatch({ type: 'emergency', id, category: event.data.category })
+              break
+            case 'token':
+              batcher.push(event.data.text)
+              break
+            case 'sources':
+              batcher.flush()
+              dispatch({ type: 'sources', id, items: event.data.items })
+              break
+            case 'done':
+              batcher.flush()
+              dispatch({ type: 'finish', id, status: 'done' })
+              finished = true
+              break
+            case 'error':
+              batcher.flush()
+              dispatch({ type: 'finish', id, status: 'error', error: event.data.message })
+              onError(event.data.message)
+              finished = true
+              break
+          }
+        }
+        batcher.flush()
+        if (!finished) dispatch({ type: 'finish', id, status: 'done' })
+      } catch (e) {
+        batcher.flush()
+        if (isAbort(e)) {
+          dispatch({ type: 'finish', id, status: 'stopped' })
+        } else {
+          const msg = e instanceof Error ? e.message : 'Something went wrong.'
+          dispatch({ type: 'finish', id, status: 'error', error: msg })
+          onError(msg)
+        }
+      } finally {
+        abortRef.current = null
+      }
+    },
+    [client, onError],
+  )
+
+  const stop = useCallback(() => abortRef.current?.abort(), [])
+
+  const reset = useCallback(() => {
+    abortRef.current?.abort()
+    dispatch({ type: 'reset' })
+  }, [])
+
+  return { messages: state.messages, isStreaming: state.streamingId !== null, send, stop, reset }
+}
