@@ -1,84 +1,35 @@
 ## Context
 
-All components exist by this stage. The questions evaluators will ask:
-1. Did LoRA help?
-2. Did RAG help?
-3. Is it safe?
-4. Is it really private?
-5. Is it fast enough?
-
-Compute is local (Ollama on a Mac), so eval sizes must stay modest (~200 MedQuAD items, ~40 doc QA items, ~60 safety prompts).
-
-```
-                    ┌──────────── RAG off ────────────┬──────────── RAG on ─────────────┐
-   phi3-base        │ A: baseline                     │ B: base + docs                  │
-   phi3-medquad     │ C: LoRA only                    │ D: full system (capstone)       │
-                    └─────────────────────────────────┴─────────────────────────────────┘
-   MedQuAD test  → A vs C   (does fine-tuning help general medical QA?)
-   Doc QA set    → A/C vs B/D (does RAG help personal questions?), B vs D (does LoRA hurt grounding?)
-   Safety set    → rule layer only (model-independent)
-   Privacy       → D end-to-end with network blocked
-```
-
-## Goals / Non-Goals
-
-**Goals:**
-- Reproducible numbers from one command.
-- Honest reporting, including regressions.
-- Artifacts ready for the showcase.
-
-**Non-Goals:**
-- Clinical validation or claims of medical accuracy.
-- LLM-as-judge with an external API (that would violate local-only). A local judge is optional and out of scope by default.
-- Large-scale benchmarks such as MedQA or PubMedQA (possible stretch goal).
+Models available locally: `phi3-base`, `phi3-medquad` (v1), `phi3-medquad-v2` (current default), all Q4_K_M via Ollama. The pipeline has retrieval over Chroma, column-aware lab extraction with history chunks, rule-based emergency detection, a personal-question notice and a degeneration guard. Compute is a laptop, so sets stay small (records ~45, MedQuAD 200, safety ~60) and runs are cached.
 
 ## Decisions
 
-**Harness calls the orchestrator in-process**, not over HTTP. This avoids SSE parsing and lets us toggle RAG and model per run. A thin HTTP path is still exercised by the privacy E2E test.
+**Run the real pipeline in-process.** `ChatOrchestrator` is built with the real `OllamaBackend(model)` and a `DocumentService` (real bge embedder) over a fresh temporary store holding every fixture document. Retrieval off means `retriever=None`. This measures exactly what users get, including guard stops and notices. The `no_documents` category uses an empty store.
 
-**Each run writes JSONL** (`id, config, question, answer, sources, latency_ms, ttft_ms, tokens`), and metrics are computed in a separate step, so outputs can be re-scored without regenerating. Generation uses temperature 0 and a fixed seed where Ollama supports it.
+**Item schema (records):** `{id, category, question, history?, expect: {values: [...], not_values?: [...], cite?: filename, absent?: bool, direction?: "high"|"low"|"normal", ambiguous_values?: [...]}}`. Scoring uses the normalized answer (control characters stripped):
+- **value:** every expected value appears, and the first number in the answer is the first expected value.
+- **not_values:** none appears as the first-stated value. This gives the previous-as-current rate.
+- **cite:** a cited source has that filename.
+- **direction:** high = high/above/elevated/outside and no claim it's normal (same rules as the grounding probe).
+- **absent:** says not found and invents no value with units.
+- **ambiguous:** mentions all candidate values, or asks a clarifying question naming the specimens.
 
-**MedQuAD subset:** a stratified sample of ~200 items from the leak-free test split, stratified by question type.
+**MedQuAD:** 200 items sampled from `data/medquad/test.jsonl`, stratified by question type with a fixed seed, and committed with attribution (CC BY 4.0). Scores:
+- ROUGE-L F1 (LCS on lowercase word tokens, implemented directly)
+- cosine similarity of bge embeddings between answer and reference
 
-**Metrics:**
-- ROUGE-L F1
-- BERTScore F1, using `roberta-large` or `distilbert-base-uncased` cached locally, chosen by runtime budget
+Answers are run closed-book (retrieval off) for every model.
 
-These are imperfect for long-form medical answers, so they are complemented by a human rubric on 30 sampled items per config. Each item is rated on correctness, completeness, and safety (0–2 each) by the student, with configs blinded.
+**Safety:** detector-only metrics (deterministic, model-independent), plus a check that emergencies short-circuit the model in the full pipeline (no model call).
 
-**Doc QA set:** synthetic patient documents (lab panel, discharge summary, medication list, visit note), entirely fictional. Each question has a gold answer string or value and gold `(filename, page)`. The set also includes:
-- unanswerable questions (the answer is not in the docs), to test "I couldn't find that"
-- distractor questions
+**Decoding:** the app's real settings. Grounded requests run at temperature 0; closed-book at 0.2 with seed 0, so runs are reproducible on the same machine.
 
-Metrics:
-- retrieval hit@k (gold page in retrieved chunks)
-- citation precision/recall (cited sources vs gold)
-- answer correctness (normalized exact or contains match for values; rubric for free text)
-- abstention accuracy on unanswerables
+**Caching:** results are keyed by (set, model, rag, item id, pipeline fingerprint = hash of prompt files + extractor version + model digest). Re-runs only compute missing items. `--fresh` ignores the cache.
 
-**Faithfulness heuristic:** For numeric claims in answers (values with units), check that each one appears in a retrieved chunk. This is a cheap hallucination detector for lab values.
-
-**Safety set:** ~40 emergency paraphrases across categories, plus ~20 hard negatives (negated mentions, past history, informational questions like "what are signs of a stroke?"). Report recall and precision per category. Recall is the priority metric, with a target of ≥95%.
-
-**Latency:** TTFT and tokens/s from Ollama eval stats on the dev machine, reported with hardware specs.
-
-**Privacy E2E:** Start the backend (with real Ollama and the real embedder) in a subprocess and run a pytest session that:
-1. installs a socket guard in the backend process via a startup hook enabled by `PHA_NET_GUARD=1`, which raises on and logs any non-loopback connect
-2. uploads a fixture doc, chats, and deletes the doc
-3. asserts the guard log is empty and the delete removed all traces
-
-Optional manual add-on: run with Wi-Fi off and capture a screen recording for the showcase.
-
-**Report:** `eval/report/build_report.py` renders Markdown (and a static HTML page) with the 2×2 table, per-metric bar charts, safety confusion matrix, latency, and qualitative examples, including failures.
+**Report:** Markdown with tables per set and model, per-category records accuracy, guard stops, latency, the 5 worst examples per model (question, expected, answer), and environment (hardware, Ollama version, model digests).
 
 ## Risks / Trade-offs
 
-- [Automatic metrics don't capture medical correctness] → Human rubric sample, and report limitations explicitly.
-- [Eval run is slow on a laptop (4 configs × ~240 items)] → Cache outputs, allow `--limit`, and run overnight if needed.
-- [BERTScore model download violates offline] → Evaluation is a dev-time tool: pre-download once, then run with HF offline mode, same as the app.
-- [Self-graded rubric bias] → Blind config labels during grading, and optionally ask a peer to grade a subset.
-- [Results show LoRA hurts RAG grounding] → This is still a valid finding: report it and list mitigations (mix context-grounded training data) as future work.
-
-## Open Questions
-
-- Will a mentor or TA provide a grading rubric for the showcase that the report should map to? Mentors are still TBA on the brief.
+- [Small sets, so noisy differences] → Report counts, not just percentages, and flag differences of 1–2 items as within noise.
+- [Heuristic scorers can be wrong, as the probe scorer was twice] → Every scorer has unit tests built from real answers, and the report shows raw answers for failures so misjudgments are visible.
+- [Fixture overlap with training] → Fixture layouts were deliberately excluded from v2's synthetic data (enforced by a test). MedQuAD items come from held-out topics.

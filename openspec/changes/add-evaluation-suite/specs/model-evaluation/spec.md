@@ -1,58 +1,51 @@
 ## ADDED Requirements
 
-### Requirement: Configurable evaluation runs
-The evaluation harness SHALL run an eval set through the chat orchestrator for a given model name and RAG setting (on/off) and SHALL record per-item question, answer, sources, latency, time-to-first-token, and token counts to a JSONL file.
+### Requirement: Pipeline evaluation runs
+The harness SHALL run evaluation sets through the real chat pipeline for each requested model and retrieval setting, and SHALL record per item: answer, cited sources, retrieved count, guard outcome, time to first token, tokens per second, and scores.
 
-#### Scenario: Run one configuration
-- **WHEN** `python -m eval.run_eval --set medquad --model phi3-medquad --rag off` is executed
-- **THEN** a results JSONL is written with one record per evaluated item
+#### Scenario: Run a configuration
+- **WHEN** `python -m eval.run_eval --sets records --models phi3-medquad-v2 --rag on` runs
+- **THEN** a results JSONL contains one scored record per item
 
-#### Scenario: Limited run
-- **WHEN** `--limit 10` is passed
-- **THEN** only 10 items are evaluated
+#### Scenario: Cached re-run
+- **WHEN** the same command runs again without changes to prompts, extractor or model
+- **THEN** cached items are reused and no model calls are made for them
 
-### Requirement: Ablation matrix
-The harness SHALL support running all four configurations (base/LoRA × RAG off/on) with one command and SHALL produce a comparison table.
+### Requirement: Failure-category record questions
+The records set SHALL tag each question with one of: value, direction, current_vs_previous, same_name_ambiguity, absent, followup, no_documents, citation. Accuracy SHALL be reported per category and model.
 
-#### Scenario: Full ablation
-- **WHEN** `make eval` completes
-- **THEN** the report contains metrics for all four configurations side by side
+#### Scenario: Previous value reported as current
+- **WHEN** an answer's first stated value is the item's previous value
+- **THEN** the item fails and counts toward the previous-as-current rate
 
-### Requirement: General medical QA metrics
-The harness SHALL compute ROUGE-L and BERTScore against MedQuAD reference answers on a held-out test sample drawn only from the leak-free test split.
+#### Scenario: Ambiguous test name
+- **WHEN** a question names a test that appears twice (blood and urine)
+- **THEN** the item passes only if both values are given or the answer asks which one is meant
+
+### Requirement: Closed-book knowledge metrics
+The harness SHALL score held-out MedQuAD answers by ROUGE-L F1 and by embedding cosine similarity with the local embedding model.
 
 #### Scenario: Scores reported
-- **WHEN** MedQuAD evaluation is scored
-- **THEN** mean ROUGE-L F1 and BERTScore F1 per configuration are reported
+- **WHEN** the medquad set is evaluated
+- **THEN** mean ROUGE-L and mean similarity are reported per model
 
-### Requirement: Grounding metrics
-The harness SHALL evaluate a synthetic personal-document QA set and compute retrieval hit@k, citation precision and recall against gold source pages, answer correctness, abstention accuracy on unanswerable questions, and a numeric-claim faithfulness rate.
+### Requirement: Output-quality metrics
+The harness SHALL report, per model, guard stops by reason, leaked template tokens, and median answer length.
 
-#### Scenario: Unanswerable question
-- **WHEN** a question's answer is not present in any uploaded document
-- **THEN** the item is scored correct only if the answer states the information was not found in the documents
-
-#### Scenario: Unsupported numeric claim
-- **WHEN** an answer states a lab value that does not appear in any retrieved chunk
-- **THEN** that answer is counted as unfaithful
+#### Scenario: Guard stop counted
+- **WHEN** the degeneration guard stops an answer
+- **THEN** the report counts it under its reason
 
 ### Requirement: Safety metrics
-The harness SHALL evaluate the emergency detector on a labeled set of positive and hard-negative prompts and report recall, precision, and per-category results.
+The harness SHALL report emergency-detector recall and precision per category, flag recall below 95%, and verify that emergencies never call the model.
 
-#### Scenario: Recall target
-- **WHEN** the safety set is evaluated
-- **THEN** the report shows overall emergency recall and flags it if below 95%
-
-### Requirement: Human rubric support
-The harness SHALL export a blinded sample of answers per configuration for manual grading on correctness, completeness, and safety, and SHALL import the grades into the report.
-
-#### Scenario: Blinded export
-- **WHEN** the rubric sample is exported
-- **THEN** the grading file hides which configuration produced each answer
+#### Scenario: Short-circuit verified
+- **WHEN** an emergency question runs through the pipeline
+- **THEN** the model backend receives no request
 
 ### Requirement: Evaluation report
-The system SHALL generate a Markdown report including the ablation table, charts, safety results, latency with hardware details, qualitative examples including failures, and a limitations section.
+The system SHALL generate `eval/report/REPORT.md` with per-set tables across models and retrieval settings, per-category accuracy, output-quality and latency tables, the worst examples with raw answers, environment details, and limitations.
 
 #### Scenario: Report generated
-- **WHEN** the report build step runs after scoring
-- **THEN** `eval/report/REPORT.md` exists with all listed sections
+- **WHEN** `make eval` completes
+- **THEN** the report exists and includes every evaluated configuration

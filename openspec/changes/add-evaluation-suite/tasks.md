@@ -1,32 +1,30 @@
-## 1. Eval sets
+## 1. Sets and fixtures
 
-- [ ] 1.1 Sample ~200 MedQuAD test items stratified by question type into `eval/sets/medquad.jsonl`
-- [ ] 1.2 Author ~40 doc-QA items over fictional fixture documents with gold answers, gold (filename, page), including unanswerables and distractors
-- [ ] 1.3 Author ~40 emergency positives across categories and ~20 hard negatives in `eval/sets/safety.jsonl`
+- [x] 1.1 Fixture `lab-report-renal.pdf` (blood + urine creatinine, previous results, Not Estab.) in make_fixtures
+- [x] 1.2 `eval/sets/records.jsonl`: ~45 categorized questions over the fixtures (value, direction, current_vs_previous, same_name_ambiguity, absent, followup, no_documents, citation)
+- [x] 1.3 `eval/sets/medquad.jsonl`: 200 stratified held-out items (seeded) with attribution
+- [x] 1.4 `eval/sets/safety.jsonl`: emergency positives and hard negatives
 
 ## 2. Harness
 
-- [ ] 2.1 Implement `eval/run_eval.py` invoking the orchestrator in-process with `--set`, `--model`, `--rag`, `--limit`, output JSONL
-- [ ] 2.2 Implement fixture loading for doc-QA runs (fresh temp Chroma + uploads per run)
-- [ ] 2.3 Add `make eval` running the 2×2 ablation with output caching
+- [x] 2.1 `eval/pipeline.py`: build orchestrator per (model, rag) over a temp store with all fixtures; empty store for no_documents
+- [x] 2.2 `eval/run_eval.py`: CLI (sets, models, rag, limit, fresh), per-item JSONL, cache keyed by pipeline fingerprint
+- [x] 2.3 `make eval` (default: 3 models × rag on/off for records; closed-book medquad; safety)
 
 ## 3. Metrics
 
-- [ ] 3.1 Implement ROUGE-L and BERTScore scoring with locally cached scorer model
-- [ ] 3.2 Implement retrieval hit@k, citation precision/recall, answer correctness, abstention accuracy
-- [ ] 3.3 Implement numeric-claim faithfulness heuristic (values with units must appear in retrieved chunks)
-- [ ] 3.4 Implement safety recall/precision per category with ≥95% recall flag
-- [ ] 3.5 Implement latency aggregation (TTFT, tokens/s) with hardware info capture
-- [ ] 3.6 Implement blinded rubric export and grade import
+- [x] 3.1 Records scorers (value, not_values, cite, direction, absent, ambiguous) with unit tests from real answers
+- [x] 3.2 ROUGE-L and embedding similarity for medquad
+- [x] 3.3 Output quality (guard stops by reason, leaks, length) and latency aggregation
+- [x] 3.4 Safety recall/precision per category; short-circuit check
 
-## 4. Privacy verification
+## 4. Report and run
 
-- [ ] 4.1 Add `PHA_NET_GUARD=1` startup hook in backend that patches socket connect to block and log non-loopback targets
-- [ ] 4.2 Write E2E pytest: launch backend subprocess with guard, upload → chat → delete, assert empty guard log and no residue
-- [ ] 4.3 Add a deliberate-telemetry negative test proving the guard catches an outbound attempt
+- [x] 4.1 `eval/report.py` → `eval/report/REPORT.md` (tables, per-category, worst examples, environment, limitations)
+- [x] 4.2 Run the full evaluation; commit the report; link findings from README and model card
 
-## 5. Report
+## 5. Privacy verification
 
-- [ ] 5.1 Implement `eval/report/build_report.py` producing `REPORT.md` with ablation table, charts, safety confusion matrix, latency, examples, limitations
-- [ ] 5.2 Run full evaluation, complete human rubric grading, and generate the final report
-- [ ] 5.3 Link the report and key findings from the README for the showcase
+- [x] 5.1 `PHA_NET_GUARD=1` startup hook blocking and logging non-loopback connections
+- [x] 5.2 E2E test: backend subprocess with guard, upload → chat → delete; empty guard log, no residue
+- [x] 5.3 Negative test proving the guard catches an outbound attempt
