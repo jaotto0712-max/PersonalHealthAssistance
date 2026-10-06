@@ -2,9 +2,9 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { ApiError, type Source } from './api/types'
+import { ApiError, type Source, type StoredMessage } from './api/types'
 import App from './App'
-import { controlledChat, doc, fakeClient } from './test/fakeClient'
+import { controlledChat, conversation, doc, fakeClient } from './test/fakeClient'
 
 const source = (n: number, cited: boolean, filename = 'labs.pdf'): Source => ({
   n,
@@ -141,7 +141,9 @@ describe('chat', () => {
         { role: 'user', content: 'what is my LDL?' },
         { role: 'assistant', content: 'reply 1' },
       ],
+      conversation_id: (calls[0] as { conversation_id: string }).conversation_id,
     })
+    expect((calls[0] as { conversation_id?: string }).conversation_id).toEqual(expect.any(String))
   })
 
   it('disables the composer and explains when Ollama is unavailable', async () => {
@@ -152,10 +154,15 @@ describe('chat', () => {
   })
 })
 
+async function openDocumentsTab() {
+  await userEvent.setup().click(screen.getByRole('tab', { name: /documents/i }))
+}
+
 describe('documents', () => {
   it('uploads a file and lists it as ready', async () => {
     const user = userEvent.setup()
     render(<App client={fakeClient()} isMock={false} />)
+    await openDocumentsTab()
     await user.upload(screen.getByLabelText('Upload documents'), new File(['x'], 'visit.txt', { type: 'text/plain' }))
     const list = screen.getByRole('list', { name: 'Uploaded documents' })
     expect(await within(list).findByText('visit.txt')).toBeInTheDocument()
@@ -166,6 +173,7 @@ describe('documents', () => {
     const user = userEvent.setup()
     const uploadDocument = vi.fn().mockRejectedValue(new ApiError(413, 'File is larger than the 20 MB limit.'))
     render(<App client={fakeClient({ uploadDocument })} isMock={false} />)
+    await openDocumentsTab()
     await user.upload(screen.getByLabelText('Upload documents'), new File(['x'], 'huge.pdf', { type: 'application/pdf' }))
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('huge.pdf')
@@ -176,6 +184,7 @@ describe('documents', () => {
     const user = userEvent.setup({ applyAccept: false })
     const uploadDocument = vi.fn()
     render(<App client={fakeClient({ uploadDocument })} isMock={false} />)
+    await openDocumentsTab()
     await user.upload(screen.getByLabelText('Upload documents'), new File(['x'], 'tool.exe'))
     expect(await screen.findByRole('alert')).toHaveTextContent(/tool\.exe.*Unsupported file type/)
     expect(uploadDocument).not.toHaveBeenCalled()
@@ -183,6 +192,7 @@ describe('documents', () => {
 
   it('warns about documents that need OCR', async () => {
     render(<App client={fakeClient({ docs: [doc({ filename: 'scan.pdf', status: 'needs_ocr', chunks: 0 })] })} isMock={false} />)
+    await openDocumentsTab()
     expect(await screen.findByText(/Text could not be read/)).toBeInTheDocument()
   })
 
@@ -191,6 +201,7 @@ describe('documents', () => {
     let release: () => void = () => {}
     const deleteDocument = vi.fn(() => new Promise<void>((r) => (release = r)))
     render(<App client={fakeClient({ docs: [doc({ id: 'd1', filename: 'labs.pdf' })], deleteDocument })} isMock={false} />)
+    await openDocumentsTab()
     await user.click(await screen.findByRole('button', { name: 'Delete labs.pdf' }))
     expect(deleteDocument).toHaveBeenCalledWith('d1')
     expect(screen.getByText('labs.pdf')).toBeInTheDocument() // still listed until confirmed
@@ -202,6 +213,7 @@ describe('documents', () => {
     const user = userEvent.setup()
     const clearDocuments = vi.fn().mockResolvedValue(undefined)
     render(<App client={fakeClient({ docs: [doc(), doc({ filename: 'visit.txt' })], clearDocuments })} isMock={false} />)
+    await openDocumentsTab()
     await user.click(await screen.findByRole('button', { name: 'Clear all documents' }))
     const dialog = screen.getByRole('dialog', { name: 'Remove all documents?' })
     await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
@@ -222,15 +234,114 @@ describe('layout', () => {
   })
 })
 
-describe('mobile documents drawer', () => {
+describe('mobile drawer', () => {
   it('opens from the header and closes with its close button', async () => {
     const user = userEvent.setup()
     render(<App client={fakeClient({ docs: [doc()] })} isMock={false} />)
-    const drawer = screen.getByRole('complementary', { name: 'Documents', hidden: true })
+    const drawer = screen.getByRole('complementary', { name: 'Chats and documents', hidden: true })
     expect(drawer).toHaveAttribute('inert') // jsdom matchMedia reports mobile width
-    await user.click(await screen.findByRole('button', { name: 'Docs (1)' }))
+    await user.click(await screen.findByRole('button', { name: 'Menu' }))
     expect(drawer).not.toHaveAttribute('inert')
-    await user.click(within(drawer).getByRole('button', { name: 'Close documents' }))
+    expect(await within(drawer).findByRole('tab', { name: 'Documents (1)' })).toBeInTheDocument()
+    await user.click(within(drawer).getByRole('button', { name: 'Close menu' }))
     expect(drawer).toHaveAttribute('inert')
+  })
+})
+
+describe('saved chats', () => {
+  const stored = (over: Partial<StoredMessage>): StoredMessage => ({
+    id: crypto.randomUUID(), role: 'user', content: '', status: 'done', sources: [], emergency: null,
+    error: null, created_at: '2026-10-06T10:00:00Z', ...over,
+  })  // fmt: skip
+
+  it('creates a conversation lazily on the first message only', async () => {
+    const createConversation = vi.fn(async () => ({
+      id: 'c-new', title: null, created_at: '2026-10-06T10:00:00Z', updated_at: '2026-10-06T10:00:00Z', message_count: 0,
+    }))  // fmt: skip
+    const requests: unknown[] = []
+    const client = fakeClient({
+      createConversation,
+      async *chat(req) {
+        requests.push(req)
+        yield { type: 'token', data: { text: 'ok.' } }
+        yield { type: 'done', data: { disclaimer: '' } }
+      },
+    })
+    const user = userEvent.setup()
+    render(<App client={client} isMock={false} />)
+    await user.click(screen.getByRole('button', { name: '+ New chat' }))
+    expect(createConversation).not.toHaveBeenCalled() // an empty new chat leaves nothing behind
+    await ask('first question')
+    await screen.findByText('ok.')
+    await ask('second question')
+    await waitFor(() => expect(requests).toHaveLength(2))
+    expect(createConversation).toHaveBeenCalledOnce()
+    expect(requests.map((r) => (r as { conversation_id: string }).conversation_id)).toEqual(['c-new', 'c-new'])
+    expect(window.location.hash).toBe('#c=c-new')
+  })
+
+  it('lists saved chats and reopens one with its sources and emergency card', async () => {
+    const saved = conversation({
+      id: 'c1',
+      title: 'Cholesterol questions',
+      messages: [
+        stored({ content: 'Is my LDL high?' }),
+        stored({
+          role: 'assistant', content: 'Yes, 162 mg/dL [1].',
+          sources: [{ n: 1, doc_id: 'd', filename: 'labs.pdf', page: 2, score: 0.8, snippet: 'LDL 162', cited: true }],
+        }),  // fmt: skip
+        stored({ content: 'I have chest pain' }),
+        stored({ role: 'assistant', content: 'Call 911 now.', emergency: 'cardiac' }),
+      ],
+    })
+    const user = userEvent.setup()
+    render(<App client={fakeClient({ conversations: [saved, conversation({ title: 'Other chat' })] })} isMock={false} />)
+    const list = await screen.findByRole('list', { name: 'Saved chats' })
+    expect(within(list).getByText('Other chat')).toBeInTheDocument()
+    await user.click(within(list).getByText('Cholesterol questions'))
+    expect(await screen.findByText('Is my LDL high?')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /sources \(1\)/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Call 911' })).toHaveAttribute('href', 'tel:911')
+    expect(window.location.hash).toBe('#c=c1')
+  })
+
+  it('reopens the chat from the URL after a reload', async () => {
+    window.history.replaceState(null, '', '/#c=c9')
+    const saved = conversation({ id: 'c9', title: 'Before reload', messages: [stored({ content: 'Remembered question' })] })
+    render(<App client={fakeClient({ conversations: [saved] })} isMock={false} />)
+    expect(await screen.findByText('Remembered question')).toBeInTheDocument()
+  })
+
+  it('renames and deletes a chat; deleting the open chat clears the thread', async () => {
+    const saved = conversation({ id: 'c1', title: 'Old name', messages: [stored({ content: 'Some question' })] })
+    const user = userEvent.setup()
+    render(<App client={fakeClient({ conversations: [saved] })} isMock={false} />)
+    const list = await screen.findByRole('list', { name: 'Saved chats' })
+    await user.click(within(list).getByText('Old name'))
+    await screen.findByText('Some question')
+
+    await user.click(within(list).getByRole('button', { name: 'Rename Old name' }))
+    const input = within(list).getByLabelText('Rename chat')
+    await user.clear(input)
+    await user.type(input, 'Lipids{Enter}')
+    expect(await within(list).findByText('Lipids')).toBeInTheDocument()
+
+    await user.click(within(list).getByRole('button', { name: 'Delete Lipids' }))
+    await waitFor(() => expect(within(list).queryByText('Lipids')).not.toBeInTheDocument())
+    expect(screen.queryByText('Some question')).not.toBeInTheDocument()
+    expect(window.location.hash).toBe('')
+  })
+
+  it('deletes all chats only after confirmation', async () => {
+    const deleteAllConversations = vi.fn(async () => {})
+    const user = userEvent.setup()
+    render(<App client={fakeClient({ conversations: [conversation(), conversation()], deleteAllConversations })} isMock={false} />)
+    await user.click(await screen.findByRole('button', { name: 'Delete all chats' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }))
+    expect(deleteAllConversations).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Delete all chats' }))
+    await user.click(within(screen.getByRole('dialog', { name: 'Delete all chats?' })).getByRole('button', { name: 'Delete all' }))
+    expect(deleteAllConversations).toHaveBeenCalledOnce()
+    expect(await screen.findByText(/No saved chats yet/)).toBeInTheDocument()
   })
 })

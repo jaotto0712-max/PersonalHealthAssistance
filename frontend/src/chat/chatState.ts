@@ -1,4 +1,4 @@
-import { type ChatTurn, MAX_HISTORY_TURNS, type Source } from '../api/types'
+import { type ChatTurn, MAX_HISTORY_TURNS, type Source, type StoredMessage } from '../api/types'
 
 export type MessageStatus = 'streaming' | 'done' | 'stopped' | 'error'
 
@@ -24,6 +24,7 @@ export type ChatAction =
   | { type: 'sources'; id: string; items: Source[] }
   | { type: 'finish'; id: string; status: Exclude<MessageStatus, 'streaming'>; error?: string }
   | { type: 'reset' }
+  | { type: 'load'; messages: ChatMessage[] }
 
 export const initialChatState: ChatState = { messages: [], streamingId: null }
 
@@ -56,6 +57,8 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
     case 'reset':
       return initialChatState
+    case 'load':
+      return { messages: action.messages, streamingId: null }
   }
 }
 
@@ -69,4 +72,17 @@ export function toHistory(messages: ChatMessage[]): ChatTurn[] {
     .filter((m) => !(m.role === 'assistant' && m.status === 'error'))
     .map((m) => ({ role: m.role, content: m.content }))
     .slice(-MAX_HISTORY_TURNS)
+}
+
+/** A saved message from the conversation store, as the chat thread renders it. */
+export function fromStored(m: StoredMessage): ChatMessage {
+  return {
+    id: m.id,
+    role: m.role,
+    content: m.content,
+    status: m.status,
+    sources: m.sources.length ? m.sources : undefined,
+    emergency: m.emergency ? { category: m.emergency } : undefined,
+    error: m.error ?? undefined,
+  }
 }

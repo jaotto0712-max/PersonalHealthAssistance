@@ -42,6 +42,22 @@ POSITIVES = [
     ("everyone would be better off dead without me", "self_harm"),
     ("no fever but chest pain since this morning", "cardiac"),  # negation in another clause
     ("I don't want to kill myself but I think about it", "self_harm"),  # never negated
+    # missed by the first rules (eval/report), then fresh phrasings written to test the fix
+    ("my husband says his chest feels tight and he's sweating", "cardiac"),
+    ("I can barely breathe after climbing one stair", "breathing"),
+    ("I've been cutting myself again", "self_harm"),
+    ("I'm thinking of taking all my pills to end it", "self_harm"),
+    ("i keep cutting my arms when it gets bad", "self_harm"),
+    ("I'm going to swallow every pill in the cabinet tonight", "self_harm"),
+    ("honestly I just want to end it", "self_harm"),
+    ("I wish I wouldn't wake up tomorrow", "self_harm"),
+    ("my wife says her chest feels heavy and her jaw hurts", "cardiac"),
+    ("I can hardly breathe lying down", "breathing"),
+    ("I can't catch my breath even sitting still", "breathing"),
+    ("i'm ready to end everything", "self_harm"),
+    ("been burning myself with a lighter", "self_harm"),
+    ("I can't go on like this", "self_harm"),
+    ("my dad's chest is tight and he's dizzy", "cardiac"),
 ]
 
 NEGATIVES = [
@@ -61,6 +77,17 @@ NEGATIVES = [
     "is it normal to feel tired after a flu shot?",
     "my report says no evidence of heavy bleeding",
     "tips for running a marathon",
+    # look-alikes for the broadened rules: dosing questions and everyday "end it"/"can't" phrases
+    "should I take all my pills at once in the morning?",
+    "do I need to take the rest of my antibiotics?",
+    "can I take all of my vitamins together?",
+    "I can't do this diet anymore lol",
+    "I want to end my gym membership",
+    "how do I end it with my therapist politely?",
+    "my chest feels better after the inhaler",
+    "I could barely sleep last night",
+    "is it bad that I can't keep going on long runs?",
+    "my chest is sore after bench press",
 ]
 
 

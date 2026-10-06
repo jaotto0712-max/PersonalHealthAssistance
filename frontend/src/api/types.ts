@@ -34,6 +34,7 @@ export interface Source {
 }
 
 export interface ChatMeta {
+  conversation_id?: string
   emergency: boolean
   category?: string
   retrieved_count?: number
@@ -55,6 +56,31 @@ export interface ChatTurn {
 export interface ChatRequest {
   message: string
   history: ChatTurn[]
+  /** Saved conversation: the server uses its stored history and saves this exchange. */
+  conversation_id?: string
+}
+
+export interface ConversationSummary {
+  id: string
+  title: string | null
+  created_at: string
+  updated_at: string
+  message_count: number
+}
+
+export interface StoredMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  status: 'done' | 'stopped' | 'error'
+  sources: Source[]
+  emergency: string | null
+  error: string | null
+  created_at: string
+}
+
+export interface ConversationDetail extends ConversationSummary {
+  messages: StoredMessage[]
 }
 
 export interface ApiClient {
@@ -64,6 +90,12 @@ export interface ApiClient {
   deleteDocument(id: string): Promise<void>
   clearDocuments(): Promise<void>
   chat(request: ChatRequest, signal: AbortSignal): AsyncIterable<ChatEvent>
+  listConversations(): Promise<ConversationSummary[]>
+  createConversation(): Promise<ConversationSummary>
+  getConversation(id: string): Promise<ConversationDetail>
+  renameConversation(id: string, title: string): Promise<ConversationSummary>
+  deleteConversation(id: string): Promise<void>
+  deleteAllConversations(): Promise<void>
 }
 
 export class ApiError extends Error {

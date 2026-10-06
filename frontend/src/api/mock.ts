@@ -4,6 +4,7 @@ import {
   type ApiClient,
   ApiError,
   type ChatEvent,
+  type ConversationDetail,
   type DocumentRecord,
   type Source,
   precheckUpload,
@@ -71,8 +72,16 @@ const GENERAL_ANSWER =
 export function createMockClient(options: { tokenDelayMs?: number } = {}): ApiClient {
   const tokenDelay = options.tokenDelayMs ?? 35
   let docs: DocumentRecord[] = []
+  const conversations = new Map<string, ConversationDetail>()
+  const now = () => new Date().toISOString()
+  const summary = ({ messages, ...c }: ConversationDetail) => ({ ...c, message_count: messages.length })
+  const conv = (id: string) => {
+    const c = conversations.get(id)
+    if (!c) throw new ApiError(404, 'Conversation not found.')
+    return c
+  }
 
-  return {
+  const client: ApiClient = {
     async health() {
       return { status: 'ok', version: 'mock', llm: 'ok', model: 'mock' }
     },
@@ -115,7 +124,65 @@ export function createMockClient(options: { tokenDelayMs?: number } = {}): ApiCl
       docs = []
     },
 
+    async listConversations() {
+      return [...conversations.values()].map(summary).sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+    },
+
+    async createConversation() {
+      const c: ConversationDetail = { id: crypto.randomUUID(), title: null, created_at: now(), updated_at: now(), message_count: 0, messages: [] }
+      conversations.set(c.id, c)
+      return summary(c)
+    },
+
+    async getConversation(id) {
+      const c = conv(id)
+      return { ...c, message_count: c.messages.length }
+    },
+
+    async renameConversation(id, title) {
+      const c = conv(id)
+      c.title = title
+      c.updated_at = now()
+      return summary(c)
+    },
+
+    async deleteConversation(id) {
+      conv(id)
+      conversations.delete(id)
+    },
+
+    async deleteAllConversations() {
+      conversations.clear()
+    },
+
     async *chat(req, signal): AsyncGenerator<ChatEvent> {
+      const saved = req.conversation_id ? conv(req.conversation_id) : null
+      if (saved) {
+        saved.title ??= req.message.slice(0, 60)
+        saved.messages.push({ id: crypto.randomUUID(), role: 'user', content: req.message, status: 'done', sources: [], emergency: null, error: null, created_at: now() })
+        saved.updated_at = now()
+      }
+      let answer = ''
+      let status: 'done' | 'stopped' = 'stopped'
+      let savedSources: Source[] = []
+      let emergencyCategory: string | null = null
+      try {
+        for await (const event of mockAnswer(req, signal)) {
+          if (event.type === 'token') answer += event.data.text
+          if (event.type === 'sources') savedSources = event.data.items
+          if (event.type === 'meta' && event.data.emergency) emergencyCategory = event.data.category ?? 'emergency'
+          if (event.type === 'done') status = 'done'
+          yield event
+        }
+      } finally {
+        saved?.messages.push({ id: crypto.randomUUID(), role: 'assistant', content: answer, status, sources: savedSources, emergency: emergencyCategory, error: null, created_at: now() })
+      }
+    },
+  }
+
+  return client
+
+  async function* mockAnswer(req: { message: string }, signal: AbortSignal): AsyncGenerator<ChatEvent> {
       await sleep(300, signal)
       const category = detectEmergency(req.message)
       const indexed = docs.filter((d) => d.status === 'indexed')
@@ -135,6 +202,5 @@ export function createMockClient(options: { tokenDelayMs?: number } = {}): ApiCl
       }
       yield { type: 'sources', data: { items: sources } }
       yield { type: 'done', data: { disclaimer: DISCLAIMER } }
-    },
   }
 }

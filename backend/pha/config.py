@@ -18,7 +18,9 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 8000
     ollama_url: str = "http://127.0.0.1:11434"
-    model: str = "phi3-medquad"
+    # Grounded LoRA v2: matches or beats phi3-base on the grounding probe (training/model_card.md).
+    # v1 "phi3-medquad" ignores retrieved documents; never make it the default.
+    model: str = "phi3-medquad-v2"
     llm_backend: Literal["ollama", "fake"] = "ollama"
     num_ctx: int = 4096  # Phi-3-mini-4k context window
     num_predict: int = 768  # max new tokens per answer
@@ -30,6 +32,7 @@ class Settings(BaseSettings):
     embed_model_dir: Path = REPO_ROOT / "models" / "embeddings" / "bge-small-en-v1.5"
     frontend_dist: Path = REPO_ROOT / "frontend" / "dist"
     registry_path: Path = REPO_ROOT / "data" / "documents.json"
+    chats_path: Path = REPO_ROOT / "data" / "chats.db"
 
     # RAG tuning
     chunk_size: int = 800  # characters

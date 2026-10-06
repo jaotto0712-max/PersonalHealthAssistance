@@ -16,6 +16,7 @@ class GenerationOptions:
     num_ctx: int
     num_predict: int
     temperature: float
+    seed: int | None = None  # set by the evaluation harness for reproducible sampling
 
 
 @dataclass(frozen=True)

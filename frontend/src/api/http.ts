@@ -4,6 +4,8 @@ import {
   ApiError,
   type ChatEvent,
   type ChatRequest,
+  type ConversationDetail,
+  type ConversationSummary,
   type DocumentRecord,
   type Health,
   uploadErrorReason,
@@ -60,6 +62,24 @@ export const httpClient: ApiClient = {
   deleteDocument: (id) => request<void>(`/api/documents/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   clearDocuments: () => request<void>('/api/documents', { method: 'DELETE' }),
+
+  listConversations: () => request<ConversationSummary[]>('/api/conversations'),
+
+  createConversation: () => request<ConversationSummary>('/api/conversations', { method: 'POST' }),
+
+  getConversation: (id) => request<ConversationDetail>(`/api/conversations/${encodeURIComponent(id)}`),
+
+  renameConversation: (id, title) =>
+    request<ConversationSummary>(`/api/conversations/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    }),
+
+  deleteConversation: (id) =>
+    request<void>(`/api/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  deleteAllConversations: () => request<void>('/api/conversations', { method: 'DELETE' }),
 
   async *chat(req: ChatRequest, signal: AbortSignal): AsyncGenerator<ChatEvent> {
     const res = await fetch('/api/chat', {

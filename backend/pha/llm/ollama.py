@@ -52,6 +52,8 @@ class OllamaBackend:
                 "temperature": options.temperature,
             },
         }
+        if options.seed is not None:
+            payload["options"]["seed"] = options.seed
         try:
             async with self._client.stream("POST", "/api/chat", json=payload) as resp:
                 if resp.status_code == 404:

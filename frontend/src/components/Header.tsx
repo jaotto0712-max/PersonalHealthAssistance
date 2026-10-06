@@ -4,9 +4,8 @@ import { GatorMascot } from './GatorMascot'
 type Props = {
   status: BackendStatus
   isMock: boolean
-  documentCount: number
   onNewChat: () => void
-  onToggleDocuments: () => void
+  onToggleSidebar: () => void
 }
 
 function statusInfo(status: BackendStatus): { label: string; dot: string } {
@@ -19,7 +18,7 @@ function statusInfo(status: BackendStatus): { label: string; dot: string } {
   return { label: 'Backend connected', dot: 'bg-amber-300' }
 }
 
-export function Header({ status, isMock, documentCount, onNewChat, onToggleDocuments }: Props) {
+export function Header({ status, isMock, onNewChat, onToggleSidebar }: Props) {
   const { label, dot } = statusInfo(status)
   return (
     <header className="flex items-center gap-3 border-b-4 border-gator-orange bg-gator-blue px-4 py-2.5 text-white">
@@ -40,10 +39,10 @@ export function Header({ status, isMock, documentCount, onNewChat, onToggleDocum
       <span aria-hidden className={`h-3 w-3 rounded-full sm:hidden ${dot}`} title={label} />
       <button
         type="button"
-        onClick={onToggleDocuments}
+        onClick={onToggleSidebar}
         className="shrink-0 rounded-md border border-white/60 px-2 py-1 text-sm font-semibold hover:bg-white/10 sm:px-3 sm:py-1.5 md:hidden"
       >
-        Docs{documentCount ? ` (${documentCount})` : ''}
+        Menu
       </button>
       <button
         type="button"

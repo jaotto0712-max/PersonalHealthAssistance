@@ -10,14 +10,15 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
+from pha.config import REPO_ROOT
 from pha.llm.base import ChatMessage
 from pha.rag.store import StoredHit
 
-RAG_INSTRUCTIONS = """\
-The user's own documents are provided below as numbered excerpts. Use them when they are relevant to the question, and cite every excerpt you use with its number in square brackets, like [1]. Only state values from the user's records that appear in the excerpts; never guess or invent them. If the excerpts do not contain the answer, say that you could not find it in their documents, then answer from general health knowledge."""  # noqa: E501
-
-NO_CONTEXT_INSTRUCTIONS = """\
-No relevant excerpts were found in the user's uploaded documents. If the question is about their personal records or results, say you could not find that information in their documents. Answer from general health knowledge and do not use citation markers."""  # noqa: E501
+# Instruction text is shared with the training-data generator (training/prepare_medquad.py) so the
+# fine-tuned model sees byte-identical prompts in training and in the app.
+PROMPTS_DIR = REPO_ROOT / "training"
+RAG_INSTRUCTIONS = (PROMPTS_DIR / "rag_instructions.txt").read_text().strip()
+NO_CONTEXT_INSTRUCTIONS = (PROMPTS_DIR / "no_context_instructions.txt").read_text().strip()
 
 CONTEXT_TOKEN_CAP = 1600
 HISTORY_TOKEN_CAP = 900

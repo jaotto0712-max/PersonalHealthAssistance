@@ -13,7 +13,7 @@ _I = re.IGNORECASE
 
 PATTERNS: dict[str, list[str]] = {
     "self_harm": [
-        r"\b(kill|hurt|harm|cut)(ing)?\s+my\s*self\b",
+        r"\b(kill|hurt|harm|cut|burn|starv)\w*\s+(my\s*self|me)\b",
         r"\b(end|take)(ing)?\s+my\s+(own\s+)?life\b",
         r"\bsuicid",
         r"\bwant(s|ed)?\s+to\s+die\b",
@@ -21,14 +21,26 @@ PATTERNS: dict[str, list[str]] = {
         r"\b(don'?t|do not)\s+want\s+to\s+(live|be\s+alive|exist)\b",
         r"\bbetter\s+off\s+dead\b",
         r"\bno\s+reason\s+to\s+live\b",
+        # intent without the words "suicide" or "kill": "end it (all)", "not wake up", pills
+        r"\b(want|going|plan\w*|think\w*\s+(of|about)|ready)\s+(to\s+)?end(ing)?\s+(it|things|everything)\b",
+        r"\bend\s+it\s+all\b",
+        r"\b(wish|hope)\s+I\s+(would(n'?t)?|could|didn'?t|don'?t|won'?t)\s+(just\s+)?(die|wake\s+up|be\s+here)\b",
+        # taking everything at once only counts with a "now/tonight/die" cue: "should I take all my
+        # pills in the morning?" is a dosing question
+        r"\b(swallow|take|took|taking|down)\w*\s+(every|all)\s+(of\s+)?(my|the|these|those)?\s*"
+        r"(pills?|meds|medications?|tablets)\b.{0,40}\b(tonight|right\s+now|to\s+die|to\s+end\s+(it|things|everything)|so\s+I\s+(die|don'?t))",
+        r"\b(keep|kept|been|started|start)\s+(cutting|burning|hurting)\s+(my|myself)",
+        r"\bcan'?t\s+(go\s+on|do\s+this\s+anymore)\b",
     ],
     "cardiac": [
         r"\bchest\s+(pain|pressure|tightness|squeezing|discomfort|hurts?)\b",
         r"\b(pain|pressure|tightness)\s+in\s+(my|his|her|the)\s+chest\b",
+        r"\bchest\s+(feels?|felt|is|was|getting)\s+(really\s+|very\s+|so\s+)?(tight|heavy|crushed|squeezed|like)",
         r"\b(am|i'?m|is|are|be|been)\s+having\s+a\s+heart\s+attack\b",
     ],
     "breathing": [
-        r"\b(can'?t|cannot|can\s+not|unable\s+to|hard\s+to|struggling\s+to)\s+breath",
+        r"\b(can'?t|cannot|can\s+not|unable\s+to|hard\s+to|struggling\s+to)\s+(catch\s+(my|his|her)\s+)?breath",
+        r"\b(can|could)\s+(barely|hardly|only\s+just)\s+breath",
         r"\b(trouble|difficulty)\s+breathing\b",
         r"\bshort(ness)?\s+of\s+breath\b",
         r"\bgasping\s+for\s+(air|breath)\b",

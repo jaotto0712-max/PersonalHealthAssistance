@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 
 import type { ApiClient } from '../api/types'
-import { chatReducer, initialChatState, toHistory } from './chatState'
+import { type ChatMessage, chatReducer, initialChatState, toHistory } from './chatState'
 import { createTokenBatcher } from './tokenBatcher'
 
 const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError'
 
-export function useChat(client: ApiClient, onError: (message: string) => void) {
+type Options = {
+  /** Returns the conversation to save into, creating one on the first message of a new chat. */
+  ensureConversation?: () => Promise<string | null>
+  /** Called after each exchange settles (e.g. to refresh the conversation list). */
+  onSettled?: () => void
+}
+
+export function useChat(client: ApiClient, onError: (message: string) => void, options: Options = {}) {
+  const { ensureConversation, onSettled } = options
   const [state, dispatch] = useReducer(chatReducer, initialChatState)
   const stateRef = useRef(state)
   const abortRef = useRef<AbortController | null>(null)
@@ -26,10 +34,17 @@ export function useChat(client: ApiClient, onError: (message: string) => void) {
 
       const controller = new AbortController()
       abortRef.current = controller
+      let conversationId: string | null = null
+      try {
+        conversationId = (await ensureConversation?.()) ?? null
+      } catch (e) {
+        onError(`Could not save this chat: ${e instanceof Error ? e.message : e}`)
+      }
       const batcher = createTokenBatcher((t) => dispatch({ type: 'tokens', id, text: t }))
       let finished = false
       try {
-        for await (const event of client.chat({ message, history }, controller.signal)) {
+        const request = { message, history, ...(conversationId ? { conversation_id: conversationId } : {}) }
+        for await (const event of client.chat(request, controller.signal)) {
           switch (event.type) {
             case 'meta':
               if (event.data.emergency) dispatch({ type: 'emergency', id, category: event.data.category })
@@ -67,9 +82,10 @@ export function useChat(client: ApiClient, onError: (message: string) => void) {
         }
       } finally {
         abortRef.current = null
+        onSettled?.()
       }
     },
-    [client, onError],
+    [client, onError, ensureConversation, onSettled],
   )
 
   const stop = useCallback(() => abortRef.current?.abort(), [])
@@ -79,5 +95,10 @@ export function useChat(client: ApiClient, onError: (message: string) => void) {
     dispatch({ type: 'reset' })
   }, [])
 
-  return { messages: state.messages, isStreaming: state.streamingId !== null, send, stop, reset }
+  const load = useCallback((messages: ChatMessage[]) => {
+    abortRef.current?.abort()
+    dispatch({ type: 'load', messages })
+  }, [])
+
+  return { messages: state.messages, isStreaming: state.streamingId !== null, send, stop, reset, load }
 }

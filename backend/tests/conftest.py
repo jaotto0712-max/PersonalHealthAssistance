@@ -49,6 +49,7 @@ def clean_settings(monkeypatch, tmp_path):
     monkeypatch.setenv("PHA_CHROMA_DIR", str(tmp_path / "chroma"))
     monkeypatch.setenv("PHA_UPLOADS_DIR", str(tmp_path / "uploads"))
     monkeypatch.setenv("PHA_REGISTRY_PATH", str(tmp_path / "documents.json"))
+    monkeypatch.setenv("PHA_CHATS_PATH", str(tmp_path / "chats.db"))
     monkeypatch.setenv("PHA_EMBED_MODEL_DIR", str(tmp_path / "no-embedding-model"))
     monkeypatch.setenv("PHA_LLM_BACKEND", "fake")  # tests never depend on a running Ollama
     get_settings.cache_clear()

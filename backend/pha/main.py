@@ -9,10 +9,12 @@ from fastapi.staticfiles import StaticFiles
 
 from pha import __version__
 from pha.api.chat import router as chat_router
+from pha.api.conversations import router as conversations_router
 from pha.api.documents import router as documents_router
 from pha.api.health import router as health_router
 from pha.chat.orchestrator import ChatOrchestrator
 from pha.chat.prompt import load_system_prompt
+from pha.chats.store import ChatStore
 from pha.config import get_settings
 from pha.llm.base import LLMBackend
 from pha.llm.factory import build_llm, generation_options
@@ -23,8 +25,12 @@ from pha.rag.service import DocumentService
 log = logging.getLogger(__name__)
 
 
-def create_app(documents: DocumentService | None = None, llm: LLMBackend | None = None) -> FastAPI:
-    """Create the app. Pass `documents` / `llm` to inject prebuilt components (tests)."""
+def create_app(
+    documents: DocumentService | None = None,
+    llm: LLMBackend | None = None,
+    chats: ChatStore | None = None,
+) -> FastAPI:
+    """Create the app. Pass `documents` / `llm` / `chats` to inject prebuilt components (tests)."""
     settings = get_settings()  # validate configuration (loopback policy) before serving anything
     system_prompt = load_system_prompt(settings.system_prompt_path)
 
@@ -40,6 +46,7 @@ def create_app(documents: DocumentService | None = None, llm: LLMBackend | None 
         if app.state.documents is not None:
             app.state.documents.reconcile()
 
+        app.state.chats = chats or ChatStore(settings.chats_path)
         app.state.llm = llm or build_llm(settings)
         retriever = app.state.documents.retriever if app.state.documents else None
         app.state.chat = ChatOrchestrator(
@@ -50,11 +57,14 @@ def create_app(documents: DocumentService | None = None, llm: LLMBackend | None 
         finally:
             if llm is None:
                 await app.state.llm.aclose()
+            if chats is None:
+                app.state.chats.close()
 
     app = FastAPI(title="Personal Health Assistant", version=__version__, lifespan=lifespan)
     app.include_router(health_router, prefix="/api")
     app.include_router(documents_router, prefix="/api")
     app.include_router(chat_router, prefix="/api")
+    app.include_router(conversations_router, prefix="/api")
     # Serve the built UI from the same local origin; mounted last so /api routes take priority.
     if (settings.frontend_dist / "index.html").is_file():
         app.mount("/", StaticFiles(directory=settings.frontend_dist, html=True), name="frontend")
