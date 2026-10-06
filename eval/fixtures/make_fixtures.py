@@ -7,6 +7,10 @@ Outputs (eval/fixtures/docs/):
   visit-summary.txt     primary-care visit note
   medication-list.docx  medications + allergies table
   scanned-letter.pdf    1-page image-only PDF with no extractable text (OCR case)
+  lab-report-columns.pdf  commercial-lab style table: current AND previous result columns,
+                        superscript lab codes, flags, comment lines, legal footer
+  lab-report-renal.pdf  renal panel + urine panel: blood AND urine creatinine (same-name
+                        ambiguity), "Not Estab." references, values that rose since last time
 """
 
 from pathlib import Path
@@ -83,11 +87,117 @@ MEDICATIONS = [
 ]
 
 
+# Commercial-lab table layout (positions mimic real borderless reports). Traps for column
+# confusion: creatinine normal now but high before; potassium high now but normal before.
+COLUMN_LAB_ROWS = [
+    # name, lab code (superscript), current, flag, previous, prev date, units, reference
+    ("Glucose", "01", "108", "High", "92", "03/02/2026", "mg/dL", "70-99"),
+    ("BUN", "01", "15", "", "28", "03/02/2026", "mg/dL", "6-20"),
+    ("Creatinine", "01", "0.98", "", "1.62", "03/02/2026", "mg/dL", "0.76-1.27"),
+    ("eGFR", "", "101", "", "52", "03/02/2026", "mL/min/1.73", ">59"),
+    ("Potassium", "01", "5.6", "High", "4.4", "03/02/2026", "mmol/L", "3.5-5.2"),
+    ("Sodium", "01", "139", "", "137", "03/02/2026", "mmol/L", "134-144"),
+]
+COLUMN_HEADER = [
+    (36, "Test"), (191, "Current Result and Flag"), (325, "Previous Result and Date"),
+    (463, "Units"), (521, "Reference Interval"),
+]  # fmt: skip
+
+
+def column_lab_cells() -> list[tuple[float, float, float, str]]:
+    """(x, top, font size, text) cells for the column-layout lab report."""
+    cells = [
+        (18, 40, 9, BANNER),
+        (18, 58, 9, "Jordan Sample   DOB: 1980-04-12   Patient Report"),
+        (18, 74, 8, "Date Collected: 05/04/2026   Date Reported: 05/05/2026   Fasting: Yes"),
+        (18, 100, 9, "Basic Metabolic Panel"),
+    ]
+    top = 122
+    cells += [(x, top, 8, text) for x, text in COLUMN_HEADER]
+    for name, code, cur, flag, prev, date, units, ref in COLUMN_LAB_ROWS:
+        top += 14
+        cells.append((36, top, 8, name))
+        if code:  # small raised footnote marker right after the name, like real reports
+            cells.append((36 + 4.6 * len(name), top - 2, 5, code))
+        cells.append((198, top, 8, cur))
+        if flag:
+            cells.append((230, top, 8, flag))
+        cells += [(333, top, 8, prev), (385, top, 8, date)]
+        cells += [(460, top, 8, units), (540, top, 8, ref)]
+    top += 30
+    cells.append((18, top, 9, "Hemoglobin"))
+    top += 20
+    cells += [(x, top, 8, text) for x, text in COLUMN_HEADER]
+    top += 14
+    cells += [(36, top, 8, "Hemoglobin"), (36 + 4.6 * 10, top - 2, 5, "01"), (198, top, 8, "11.8"),
+              (230, top, 8, "Low"), (460, top, 8, "g/dL"), (540, top, 8, "13.0-17.7")]  # fmt: skip
+    top += 14
+    cells.append((163, top, 8, "Specimen slightly hemolyzed; result may be affected."))
+    cells += [
+        (60, 740, 7, "(c) 2026 Example Laboratory Holdings. All Rights Reserved. Page 1 of 1"),
+        (60, 752, 7, "This document contains private and confidential health information."),
+    ]
+    return cells
+
+
+RENAL_ROWS = [
+    # name, lab code, current, flag, previous, prev date, units, reference
+    ("Creatinine", "01", "1.31", "High", "0.95", "03/10/2026", "mg/dL", "0.76-1.27"),
+    ("BUN", "01", "24", "High", "16", "03/10/2026", "mg/dL", "6-20"),
+    ("eGFR", "", "68", "", "96", "03/10/2026", "mL/min/1.73", ">59"),
+    ("Sodium", "01", "141", "", "139", "03/10/2026", "mmol/L", "134-144"),
+]
+URINE_ROWS = [
+    ("Creatinine, Urine", "01", "88.2", "", "", "", "mg/dL", "Not Estab."),
+    ("Protein, Total, Urine", "01", "12.5", "", "", "", "mg/dL", "Not Estab."),
+    ("Protein/Creat Ratio", "01", "142", "", "", "", "mg/g creat", "0-200"),
+]
+
+
+def _table_rows(rows, top: float) -> tuple[list[tuple[float, float, float, str]], float]:
+    cells = [(x, top, 8, text) for x, text in COLUMN_HEADER]
+    for name, code, cur, flag, prev, date, units, ref in rows:
+        top += 14
+        cells.append((36, top, 8, name))
+        if code:
+            cells.append((36 + 4.6 * len(name), top - 2, 5, code))
+        cells.append((198, top, 8, cur))
+        if flag:
+            cells.append((230, top, 8, flag))
+        if prev:
+            cells += [(333, top, 8, prev), (385, top, 8, date)]
+        for x, text in ((460, units), (532, ref)):
+            for word in text.split(" "):  # real word spacing so words don't merge
+                cells.append((x, top, 8, word))
+                x += 4.6 * len(word) + 4
+    return cells, top
+
+
+def renal_lab_cells() -> list[tuple[float, float, float, str]]:
+    """Renal panel with a blood creatinine AND, in a second table, a urine creatinine."""
+    cells = [
+        (18, 40, 9, BANNER),
+        (18, 58, 9, "Jordan Sample   DOB: 1980-04-12   Patient Report"),
+        (18, 74, 8, "Date Collected: 06/12/2026   Date Reported: 06/13/2026   Fasting: No"),
+        (18, 100, 9, "Renal Function Panel"),
+    ]
+    rows, top = _table_rows(RENAL_ROWS, 122)
+    cells += rows
+    cells.append((18, top + 30, 9, "Urine Protein/Creatinine Ratio (Random)"))
+    rows, top = _table_rows(URINE_ROWS, top + 50)
+    cells += rows
+    cells += [
+        (60, 740, 7, "(c) 2026 Example Laboratory Holdings. All Rights Reserved. Page 1 of 1"),
+        (60, 752, 7, "This document contains private and confidential health information."),
+    ]
+    return cells
+
+
 def _pdf_escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
 
-def write_pdf(path: Path, pages: list[list[str] | None]) -> None:
+def write_pdf(path: Path, pages: list) -> None:
     """Minimal PDF writer. A page of None is image-only (a filled shape, no text)."""
     objects: list[bytes] = []
     page_ids: list[int] = []
@@ -98,6 +208,11 @@ def write_pdf(path: Path, pages: list[list[str] | None]) -> None:
         page_ids.append(page_id)
         if lines is None:
             stream = "0.6 g 72 300 468 400 re f 0.2 g 100 600 300 20 re f"
+        elif isinstance(lines, dict):  # positioned cells: (x, top-from-page-top, size, text)
+            stream = "".join(
+                f"BT /F1 {size} Tf 1 0 0 1 {x} {792 - top - size} Tm ({_pdf_escape(text)}) Tj ET "
+                for x, top, size, text in lines["cells"]
+            )
         else:
             body = " T* ".join(f"({_pdf_escape(line)}) Tj" for line in lines)
             stream = f"BT /F1 11 Tf 14 TL 60 740 Td {body} ET"
@@ -108,7 +223,10 @@ def write_pdf(path: Path, pages: list[list[str] | None]) -> None:
         data = stream.encode("latin-1")
         objects.append(b"<< /Length %d >>\nstream\n" % len(data) + data + b"\nendstream")
     kids = " ".join(f"{p} 0 R" for p in page_ids)
-    head = [b"<< /Type /Catalog /Pages 2 0 R >>", f"<< /Type /Pages /Kids [{kids}] /Count {n_pages} >>".encode()]
+    head = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        f"<< /Type /Pages /Kids [{kids}] /Count {n_pages} >>".encode(),
+    ]
     font = b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
     all_objects = head + objects + [font]
 
@@ -120,7 +238,8 @@ def write_pdf(path: Path, pages: list[list[str] | None]) -> None:
     xref = len(out)
     out += f"xref\n0 {len(all_objects) + 1}\n0000000000 65535 f \n".encode()
     out += b"".join(f"{o:010d} 00000 n \n".encode() for o in offsets)
-    out += f"trailer\n<< /Size {len(all_objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+    trailer = f"trailer\n<< /Size {len(all_objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n"
+    out += trailer.encode()
     path.write_bytes(bytes(out))
 
 
@@ -131,7 +250,9 @@ def write_docx(path: Path) -> None:
     doc.add_heading("Medication List - Jordan Sample", level=1)
     doc.add_paragraph("Last updated: 2026-08-21 by Dr. Example")
     table = doc.add_table(rows=1, cols=5)
-    for cell, title in zip(table.rows[0].cells, ["Medication", "Dose", "How often", "Reason", "Started"], strict=True):
+    for cell, title in zip(
+        table.rows[0].cells, ["Medication", "Dose", "How often", "Reason", "Started"], strict=True
+    ):
         cell.text = title
     for row in MEDICATIONS:
         cells = table.add_row().cells
@@ -149,6 +270,8 @@ def main() -> None:
     (OUT / "visit-summary.txt").write_text(VISIT_SUMMARY)
     write_docx(OUT / "medication-list.docx")
     write_pdf(OUT / "scanned-letter.pdf", [None])
+    write_pdf(OUT / "lab-report-columns.pdf", [{"cells": column_lab_cells()}])
+    write_pdf(OUT / "lab-report-renal.pdf", [{"cells": renal_lab_cells()}])
     for p in sorted(OUT.iterdir()):
         print(f"{p.name:24} {p.stat().st_size:>7} bytes")
 

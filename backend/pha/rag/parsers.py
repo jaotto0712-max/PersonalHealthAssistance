@@ -6,6 +6,13 @@ from dataclasses import dataclass
 from docx import Document as DocxDocument
 from pypdf import PdfReader
 
+from pha.rag.lab_tables import extract_pages, is_boilerplate
+
+# Bump when extraction output changes: existing uploads are re-indexed at startup.
+# 2: column tables; 3: older results off rows; 4: older results as history chunks;
+# 5: same-name tests labelled by specimen, explicit "no reference range established"
+EXTRACTOR_VERSION = 5
+
 # A PDF with less extractable text than this (per page, on average) is treated as scanned.
 MIN_CHARS_PER_PAGE = 20
 
@@ -21,12 +28,24 @@ class ParsedDocument:
     needs_ocr: bool = False
 
 
+def _strip_boilerplate(text: str) -> str:
+    return "\n".join(line for line in text.splitlines() if not is_boilerplate(line))
+
+
 def _parse_pdf(data: bytes) -> ParsedDocument:
     try:
         reader = PdfReader(io.BytesIO(data))
-        pages = [(i, page.extract_text() or "") for i, page in enumerate(reader.pages, start=1)]
+        plain = [page.extract_text() or "" for page in reader.pages]
     except Exception as e:  # pypdf raises many exception types for malformed files
         raise ParseError(f"Could not read PDF: {e}") from e
+    # Lab tables: column-aware text where a results header is found; elsewhere keep pypdf's text.
+    geometric = extract_pages(data) or []
+    pages = []
+    for i, text in enumerate(plain, start=1):
+        current, older, has_table = geometric[i - 1] if i <= len(geometric) else ("", "", False)
+        pages.append((i, current if has_table else _strip_boilerplate(text)))
+        if has_table and older:  # separate block -> separate "history" chunks
+            pages.append((i, older))
     count = len(pages)
     text_chars = sum(len(t.strip()) for _, t in pages)
     return ParsedDocument(

@@ -10,7 +10,7 @@ from pathlib import Path, PurePosixPath
 
 from pha.rag.chunker import chunk_pages
 from pha.rag.embedder import Embedder
-from pha.rag.parsers import parse
+from pha.rag.parsers import EXTRACTOR_VERSION, parse
 from pha.rag.registry import DocumentRecord, Registry
 from pha.rag.retriever import Retriever
 from pha.rag.store import VectorStore
@@ -122,6 +122,7 @@ class DocumentService:
                 pages=parsed.page_count,
                 chunks=len(chunks),
                 status="needs_ocr" if parsed.needs_ocr else "indexed",
+                extractor_version=EXTRACTOR_VERSION,
             )
             self.registry.add(record)  # last step: a record means file + vectors are complete
         except Exception:
@@ -166,3 +167,40 @@ class DocumentService:
         for doc_id in self.store.doc_ids() - known:
             log.warning("Removing orphaned vectors for %s", doc_id)
             self.store.delete_document(doc_id)
+        for record in self.registry.all():
+            if record.extractor_version < EXTRACTOR_VERSION:
+                self.reindex(record)
+
+    def reindex(self, record: DocumentRecord) -> DocumentRecord:
+        """Re-parse a stored upload with the current extractor; same id, vectors replaced."""
+        files = [p for p in (self.uploads_dir / record.id).iterdir() if p.is_file()]
+        if not files:
+            return record
+        path = files[0]
+        try:
+            parsed = parse(path.read_bytes(), path.suffix.lower())
+        except Exception:
+            log.exception("Re-indexing %s failed; keeping the old index", record.id)
+            return record
+        chunks = (
+            []
+            if parsed.needs_ocr
+            else chunk_pages(parsed.pages, self.chunk_size, self.chunk_overlap)
+        )
+        vectors = self.embedder.embed_documents([c.text for c in chunks]) if chunks else []
+        self.store.delete_document(record.id)
+        if chunks:
+            self.store.add(record.id, record.filename, chunks, vectors)
+        updated = record.model_copy(update={
+            "pages": parsed.page_count, "chunks": len(chunks),
+            "status": "needs_ocr" if parsed.needs_ocr else "indexed",
+            "extractor_version": EXTRACTOR_VERSION,
+        })  # fmt: skip
+        self.registry.add(updated)
+        log.info(
+            "Re-indexed %s with extractor v%d (%d chunks)",
+            record.id,
+            EXTRACTOR_VERSION,
+            len(chunks),
+        )
+        return updated

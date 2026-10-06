@@ -20,6 +20,7 @@ class DocumentRecord(BaseModel):
     chunks: int
     status: DocumentStatus
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    extractor_version: int = Field(default=1, exclude=True)  # records before versioning = 1
 
 
 class Registry:
@@ -33,7 +34,11 @@ class Registry:
 
     def _save(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        data = [r.model_dump(mode="json") | {"sha256": r.sha256} for r in self.all()]
+        data = [
+            r.model_dump(mode="json")
+            | {"sha256": r.sha256, "extractor_version": r.extractor_version}
+            for r in self.all()
+        ]
         tmp = self._path.with_suffix(".tmp")
         tmp.write_text(json.dumps(data, indent=2))
         tmp.replace(self._path)  # atomic on POSIX
