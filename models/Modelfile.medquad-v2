@@ -1,0 +1,21 @@
+# Ollama model: phi3-medquad-v2 — Phi-3-mini-4k-instruct + grounded MedQuAD LoRA v2 (merged), GGUF Q4_K_M.
+# Build: training/export_gguf.sh, then:  cd models && ollama create phi3-medquad-v2 -f Modelfile.medquad-v2
+# The system prompt is NOT baked in: the backend sends training/system_prompt.txt with every chat.
+FROM ./phi3-medquad-v2-Q4_K_M.gguf
+
+# Phi-3 chat format, identical to the Hugging Face chat template used in training:
+#   <|system|>\n...<|end|>\n<|user|>\n...<|end|>\n<|assistant|>\n
+TEMPLATE """{{- range $i, $_ := .Messages }}
+{{- $last := eq (len (slice $.Messages $i)) 1 -}}
+<|{{ .Role }}|>
+{{ .Content }}<|end|>
+{{ if and $last (ne .Role "assistant") }}<|assistant|>
+{{ end }}
+{{- end }}"""
+
+PARAMETER stop "<|end|>"
+PARAMETER stop "<|endoftext|>"
+PARAMETER stop "<|user|>"
+PARAMETER stop "<|assistant|>"
+PARAMETER temperature 0.2
+PARAMETER num_ctx 4096

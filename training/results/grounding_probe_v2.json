@@ -1,0 +1,296 @@
+{
+  "phi3-base": {
+    "rates": {
+      "value": "11/11",
+      "direction": "6/7",
+      "citation": "9/11",
+      "absence": "3/3"
+    },
+    "rows": [
+      {
+        "question": "Is my LDL cholesterol high?",
+        "answer": "Yes, according to your lab results from the synthetic document [1], your total LDL (\"bad\") cholesterol level is at 162 mg/dL which exceeds the reference range of less than 100 mg/dL. This indicates that it's high and should be monitored or managed with lifestyle changes, dietary adjustments, or medication as recommended by your healthcare provider [3].",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my A1C?",
+        "answer": "Your Hemoglobin A1C level, as mentioned in your lab report [2], is 6.1%. This falls within the range consistent with prediabetes (ref <5.7%). It's important to follow up on this according to Dr. Example\u2019s plan for diet and exercise counseling along with rechecking lipid panel and A1C in three months [1].",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my HDL cholesterol?",
+        "answer": "Your HDL, or \"good\" cholesterol level is reported as [4] to be at 48 mg/dL in your lab report excerpt from document numbered [1]. This value falls below the recommended range of over 40 mg/dL.",
+        "value": true,
+        "citation": true,
+        "direction": false
+      },
+      {
+        "question": "Is my fasting glucose normal?",
+        "answer": "Your fasting glucose level is slightly elevated at 108 mg/dL, which falls outside the reference range of 70-99 mg/dL [2]. This indicates that your blood sugar levels are higher than what's considered normal. It suggests a condition known as prediabetes when fasting glucose is between 100 and 125 mg/dL, or diabetes if it\u2019 employee_id = 'EMPLOYEE-34987',\n    department = 'Sales'",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What were my triglycerides?",
+        "answer": "Your triglycerides level was reported as 140 mg/dL in your lab report [2]. This value falls within the normal range, which is less than or equal to 150 mg/dL. It's important for maintaining heart health and overall well-be employee satisfaction can be influenced by various factors such as work environment, management practices, compensation, career development opportunities, recognition of achievements, work-life balance, company culture, communication from leadership, job security, diversity and inclusion policies, flexibility in working hours or location, access to resources needed for the job, employee wellness programs, feedback mechanisms, team dynamics, personal growth goals alignment with organizational objectives, fair treatment of all employees regardless of background.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "Is my creatinine okay?",
+        "answer": "According to your lab report [1], the Creatinine level is at 0.9 mg/dL, which falls within the normal reference range of 0.7-1.3 mg/dL. This suggests that your kidney function appears to be in a healthy state based on this test result alone. However, it's important to remember I cannot diagnose conditions or provide personal medical advice; for any concerns about creatinine levels and overall kidney health, please consult with your clinician who can interpret these results within the context of your full medical history.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my hemoglobin?",
+        "answer": "Your Hemoglobin A1C level is reported as being at a high of 6.1%, which falls within the range consistent with prediabetes [2]. However, your Complete Blood Count (CBC) shows that you have a normal hemoglobin value of 14.2 g/dL according to standard reference ranges provided in document number one ([1]).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What dose of atorvastatin am I taking?",
+        "answer": "According to your medication list, you are prescribed Atorvastatin and the dosage specified there is \"20 mg\" which means that you take a single tablet containing this amount once every night. It's important not to change or stop any of these unless advised by your healthcare provider.",
+        "value": true,
+        "citation": false
+      },
+      {
+        "question": "How much lisinopril do I take?",
+        "answer": "According to your medication list, you should be taking Lisinopril at a dosage of 10 mg once daily. It's important that this prescription is reviewed by your healthcare provider regularly for any necessary adjustments based on how well it manages your blood pressure and overall health condition [1].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "Am I allergic to any medications?",
+        "answer": "According to your documents, you have a known allergy to penicillin which causes hives [3]. It's important not to take any antibiotics that are in the Penicillin family without consulting with your clinician. Always inform healthcare providers about this allergy when receiving treatment or prescriptions for new medications.",
+        "value": true,
+        "citation": false
+      },
+      {
+        "question": "What was my blood pressure at my visit?",
+        "answer": "Your recorded blood pressure during your last clinic visit on August 21, 2026, was 138/88 mmHg according to the primary care visit summary document [2]. This reading is slightly elevated but not in a range that would typically be considered hypertensive. It's important for you to continue monitoring your blood pressure at home as advised and return if it consistently stays above 140/90 mmHg, which could indicate high blood pressure (hypertension).",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "What was my vitamin D level?",
+        "answer": "I'm sorry, but I couldn't find your Vitamin D levels in the provided documents [1], [2], and [3]. If you need information about this test result or have concerns regarding it, please consult with a healthcare professional. They can provide personalized advice based on comprehensive medical history and current symptoms.",
+        "absence": true
+      },
+      {
+        "question": "What was my TSH?",
+        "answer": "I'm sorry, but I couldn't find the information about your Thyroid Stimulating Hormone (TSH) levels in any of the documents you provided. If this is a concern for you or if there are symptoms that worry you regarding thyroid function, it would be best to discuss them with your healthcare provider who can order appropriate tests and provide guidance based on their findings.",
+        "absence": true
+      },
+      {
+        "question": "Am I taking metformin? What dose?",
+        "answer": "I'm sorry, but there is no mention of Metformin in your medication list or visit summary documents [1][2]. It seems you are not currently prescribed this medication according to the information provided. If you have concerns about diabetes management and think metformin might be appropriate for you, please discuss it with Dr. Example during your next appointment on 2026-11-20 or contact their clinic directly.",
+        "absence": true
+      }
+    ]
+  },
+  "phi3-medquad": {
+    "rates": {
+      "value": "2/11",
+      "direction": "1/7",
+      "citation": "1/11",
+      "absence": "1/3"
+    },
+    "rows": [
+      {
+        "question": "Is my LDL cholesterol high?",
+        "answer": " Your doctor may recommend that you take medication to lower your blood levels if they are too high, even though the risk for heart disease is not yet known [2]. The goal should be a total level below 100 mg/dL. If it's above this number but still under 130mg/dl you may need medication to lower your LDL cholesterol, especially if other risk factors are present such as diabetes or high blood pressure [2].",
+        "value": false,
+        "citation": false,
+        "direction": false
+      },
+      {
+        "question": "What was my A1C?",
+        "answer": " Your hemoglobin A1c level is a measure of your average blood glucose levels over the past two to three months. The higher this number, the greater risk you have for diabetes and heart disease. Anything below 5.7% is considered normal; between 5.7-6.4%, prediabetes (meaning that if nothing changes your blood glucose levels will rise); above 6.5%, type II diabetes [2].",
+        "value": false,
+        "citation": true,
+        "direction": false
+      },
+      {
+        "question": "What was my HDL cholesterol?",
+        "answer": " Your lab report shows that your total blood level of lipids, or fats and oils in the body is high at 238 mg/dL; this includes a low amount (48mg/dl) of good fat called \"HDL\" which should be higher than 60.",
+        "value": true,
+        "citation": false,
+        "direction": false
+      },
+      {
+        "question": "Is my fasting glucose normal?",
+        "answer": " Your test result of a fasting glucose level is slightly higher than the reference range, which means it's considered high but not diabetic (which would be over 135 mg/dL). This condition is called prediabetes. It can lead to type 2 diabetes if you don'esto make changes in your lifestyle and eating habits, such as exercising more often or losing weight.",
+        "value": false,
+        "citation": false,
+        "direction": false
+      },
+      {
+        "question": "What were my triglycerides?",
+        "answer": " Your test result shows that your level of blood fats called triglycerides was normal at the time you had this lab done (139 mg/dL). Triglycerides are a type of fat found in the blood and they can be measured by doing an enzyme-linked immunosorbent assay, or ELISA.",
+        "value": false,
+        "citation": false,
+        "direction": false
+      },
+      {
+        "question": "Is my creatinine okay?",
+        "answer": " Your creatinine level is normal, which means your kidneys are working well to remove wastes from the bloodstream and maintain a healthy balance of fluids in the body. Creatinine levels can be affected by muscle mass (larger people tend to have higher values), age, gender, race/ethnicity, dietary intake, medications that affect kidney function or creatine production such as cimetidine and trimethoprim-sulfamethoxazole.",
+        "value": false,
+        "citation": false,
+        "direction": false
+      },
+      {
+        "question": "What was my hemoglobin?",
+        "answer": " Your test result shows that your level of hemoglobin is normal at a value of 14.2 g/dL, which falls within the reference range for adults between ages 3 and over (normal values are from about 13 to 17 grams per deciliter).",
+        "value": true,
+        "citation": false,
+        "direction": true
+      },
+      {
+        "question": "What dose of atorvastatin am I taking?",
+        "answer": " You are currently prescribed a daily dosage of 20 milligrams (mg). Atorvastatin can be taken once per day, either in the morning or evening; however it is recommended that you take your medication with food. If for some reason this dose does not work well enough to lower cholesterol levels as desired by a health care provider then an increase of 10 mg may occur at follow-up visits (every three months).",
+        "value": false,
+        "citation": false
+      },
+      {
+        "question": "How much lisinopril do I take?",
+        "answer": " The recommended starting dosage of the medication is one tablet daily, which may be increased to two or three times a day.\nThe maximum amount that should not exceed in any given period includes: - 25 mg for adults and children over age six months who weigh less than 10 kg (about 22 pounds) - 37.5 mg per week, divided into two or three doses of at least five days' duration",
+        "value": false,
+        "citation": false
+      },
+      {
+        "question": "Am I allergic to any medications?",
+        "answer": " The following information is provided by the National Library of Medicine's MedlinePlus Drug Allergy database, which contains a list of drugs that have been reported as causing an adverse reaction in people who are sensitive or intolerant. If you think your symptoms may be due to medication allergy contact with health care providers and pharmacists for advice on how best to avoid the drug(s) responsible, including whether it is safe to continue taking them under medical supervision. The following list of drugs has been reported as causing an allergic reaction in people who are sensitive or intolerant: - amoxicillin (Amoxil), clavulanate potassestrimaline sulfone, and trimethoprim-sulfamethoxazole.",
+        "value": false,
+        "citation": false
+      },
+      {
+        "question": "What was my blood pressure at my visit?",
+        "answer": " Your doctor measured your blood pressure during the office visit and it was normal (less than or equal to 135 mmHg systolic). However, you were asked by a nurse in an outpatient setting for another measurement of your blood pressure. The reading from that second test showed high blood pressure with values greater than 140/90mm Hg and was recorded as such on the lab report (see attached document #2)",
+        "value": false,
+        "citation": false
+      },
+      {
+        "question": "What was my vitamin D level?",
+        "answer": " Your Vitamin D test result is listed in the second column as \"Vitamin D, total.\" The third and fourth columns show your reference range (the normal amount for a healthy person), which you can use to compare with your results. If there are no numbers shown next to these ranges it means that they were not available from this lab or test method. Your result is listed in the fifth column as \"Result.\" The sixth and seventh columns show how much higher than normal (above) or lower than normal (below) you have vitamin D levels, also called deficiency/excess level of Vitamin D. If there are no numbers shown next to these ranges it means that they were not available from this lab or test method. Your result is listed in the eighth column as \"Interpretation.\"",
+        "absence": false
+      },
+      {
+        "question": "What was my TSH?",
+        "answer": " Your thyroid stimulating hormone, or TSH level is within the normal range at a value of 2.7 mU/mL with an upper limit reference interval between 0 and 6.\nYour doctor may order additional tests to confirm your diagnosis if you have symptoms that suggest hypothyroidism (low thyroid function) such as fatigue, weight gain or cold intolerance; however these results are not diagnostic of a specific condition without further testing by an endocrinologist and/estrous cycle.",
+        "absence": false
+      },
+      {
+        "question": "Am I taking metformin? What dose?",
+        "answer": " You are not currently prescribed any medications for diabetes or prediabetes, but you have been diagnosed with elevated blood glucose levels (prediabetes). Your doctor may recommend lifestyle changes and/or a low-dose of metformin to help prevent the development of type 2 diabetes.",
+        "absence": true
+      }
+    ]
+  },
+  "phi3-medquad-v2": {
+    "rates": {
+      "value": "11/11",
+      "direction": "7/7",
+      "citation": "11/11",
+      "absence": "3/3"
+    },
+    "rows": [
+      {
+        "question": "Is my LDL cholesterol high?",
+        "answer": " Yes. According to your lab report, your LDL cholesterol was 162 mg/dL [1], which is above the reference range (<100). Talk with your clinician about what this result means for you.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my A1C?",
+        "answer": " According to your lab report, your hemoglobin A1C was 6.1 % [2], which is above the reference range (<5.7 %). This result is consistent with prediabetes. Talk with your clinician about what this result means for you.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my HDL cholesterol?",
+        "answer": " According to your lab report, your HDL cholesterol was 48 mg/dL [1], which is within the reference range (>40).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "Is my fasting glucose normal?",
+        "answer": " No. According to your lab report, your fasting glucose was 108 mg/dL [2], which is above the reference range (70-99). Talk with your clinician about what this result means for you.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What were my triglycerides?",
+        "answer": " According to your lab report, your triglycerides were 140 mg/dL [2], which is within the reference range (<150 mg/dL).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "Is my creatinine okay?",
+        "answer": " Yes. According to your lab report, your creatinine was 0.9 mg/dL [1], which is within the reference range (0.7-1.3 mg/dL).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my hemoglobin?",
+        "answer": " According to your lab report, your hemoglobin was 14.2 g/dL [2], which is within the reference range (13.5-17.5 g/dL).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What dose of atorvastatin am I taking?",
+        "answer": " According to your medication list, you take Atorvastatin 20 mg once nightly [2].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "How much lisinopril do I take?",
+        "answer": " According to your medication list, you take Lisinopril 10 mg once daily [1].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "Am I allergic to any medications?",
+        "answer": " Your medication list records an allergy to penicillin (hives in 2015). No known food allergies were reported [2].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "What was my blood pressure at my visit?",
+        "answer": " At your visit, your blood pressure was 138/88 mmHg [2].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "What was my vitamin D level?",
+        "answer": " I couldn't find any vitamin D, 25-hydroxy result in your documents. If you've had this test, you can upload that report, or ask your clinician whether it's needed.",
+        "absence": true
+      },
+      {
+        "question": "What was my TSH?",
+        "answer": " I couldn'\u009dt find any TSH result in your documents. If you've had this test, you can upload that report, or ask your clinician whether it's needed.",
+        "absence": true
+      },
+      {
+        "question": "Am I taking metformin? What dose?",
+        "answer": " I couldn't find any mention of metformin in your documents, so I couldn't help. If you have a list of medications that includes this drug, please upload it and I can take a look.",
+        "absence": true
+      }
+    ]
+  }
+}

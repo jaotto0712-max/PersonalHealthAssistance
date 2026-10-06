@@ -1,0 +1,12 @@
+# Training stack, pinned to the versions verified by training/tests/test_lora_pipeline.py.
+# torch comes from the CUDA wheel index in training/hpc/setup_env.sh (or Colab's preinstall).
+transformers==5.18.0
+peft==0.21.2
+trl==1.14.1
+accelerate==1.15.0
+datasets==5.0.1
+bitsandbytes==0.50.2
+huggingface_hub
+pandas
+ipykernel
+cmake  # provides cmake for training/export_gguf.sh without module loads

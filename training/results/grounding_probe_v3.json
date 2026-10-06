@@ -1,0 +1,268 @@
+{
+  "phi3-base": {
+    "rates": {
+      "value": "16/16",
+      "direction": "11/12",
+      "citation": "14/16",
+      "absence": "3/3"
+    },
+    "rows": [
+      {
+        "question": "Is my LDL cholesterol high?",
+        "answer": "Yes, according to your lab results from the synthetic document [1], your total LDL (\"bad\") cholesterol level is at 162 mg/dL which exceeds the reference range of less than 100 mg/dL. This indicates that it's high and should be monitored or managed with lifestyle changes, dietary adjustments, or medication as recommended by your healthcare provider [3].",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my A1C?",
+        "answer": "Your Hemoglobin A1C level, as mentioned in your lab report [2], is 6.1%. This falls within the range consistent with prediabetes (ref <5.7%). It's important to follow up on this according to Dr. Example\u2019s plan for diet and exercise counseling along with rechecking lipid panel and A1C in three months [1].",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my HDL cholesterol?",
+        "answer": "Your HDL, or \"good\" cholesterol level is reported as [4] to be at 48 mg/dL in your lab report excerpt from document numbered [1]. This value falls below the recommended range of over 40 mg/dL.",
+        "value": true,
+        "citation": true,
+        "direction": false
+      },
+      {
+        "question": "Is my fasting glucose normal?",
+        "answer": "Your fasting glucose level is slightly elevated at 108 mg/dL, which falls outside the reference range of 70-99 mg/dL [2]. This indicates that your blood sugar levels are higher than what's considered normal. It suggests a condition known as prediabetes when fasting glucose is between 100 and 125 mg/dL, or diabetes if it\u2019 employee_id = 'EMPLOYEE-34987',\n    department = 'Sales'",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What were my triglycerides?",
+        "answer": "Your triglycerides level was reported as 140 mg/dL in your lab report [2]. This value falls within the normal range, which is less than or equal to 150 mg/dL. It's important for maintaining heart health and overall well-be employee satisfaction can be influenced by various factors such as work environment, management practices, compensation, career development opportunities, recognition of achievements, work-life balance, company culture, communication from leadership, job security, diversity and inclusion policies, flexibility in working hours or location, access to resources needed for the job, employee wellness programs, feedback mechanisms, team dynamics, personal growth goals alignment with organizational objectives, fair treatment of all employees regardless of background.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "Is my creatinine okay?",
+        "answer": "According to your lab report [1], the Creatinine level is at 0.9 mg/dL, which falls within the normal reference range of 0.7-1.3 mg/dL. This suggests that your kidney function appears to be in a healthy state based on this test result alone. However, it's important to remember I cannot diagnose conditions or provide personal medical advice; for any concerns about creatinine levels and overall kidney health, please consult with your clinician who can interpret these results within the context of your full medical history.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my hemoglobin?",
+        "answer": "Your Hemoglobin A1C level is reported as being at a high of 6.1%, which falls within the range consistent with prediabetes [2]. However, your Complete Blood Count (CBC) shows that you have a normal hemoglobin value of 14.2 g/dL according to standard reference ranges provided in document number one ([1]).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What dose of atorvastatin am I taking?",
+        "answer": "According to your medication list, you are prescribed Atorvastatin and the dosage specified there is \"20 mg\" which means that you take a single tablet containing this amount once every night. It's important not to change or stop any of these unless advised by your healthcare provider.",
+        "value": true,
+        "citation": false
+      },
+      {
+        "question": "How much lisinopril do I take?",
+        "answer": "According to your medication list, you should be taking Lisinopril at a dosage of 10 mg once daily. It's important that this prescription is reviewed by your healthcare provider regularly for any necessary adjustments based on how well it manages your blood pressure and overall health condition [1].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "Am I allergic to any medications?",
+        "answer": "According to your documents, you have a known allergy to penicillin which causes hives [3]. It's important not to take any antibiotics that are in the Penicillin family without consulting with your clinician. Always inform healthcare providers about this allergy when receiving treatment or prescriptions for new medications.",
+        "value": true,
+        "citation": false
+      },
+      {
+        "question": "What was my blood pressure at my visit?",
+        "answer": "Your recorded blood pressure during your last clinic visit on August 21, 2026, was 138/88 mmHg according to the primary care visit summary document [2]. This reading is slightly elevated but not in a range that would typically be considered hypertensive. It's important for you to continue monitoring your blood pressure at home as advised and return if it consistently stays above 140/90 mmHg, which could indicate high blood pressure (hypertension).",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "What was my vitamin D level?",
+        "answer": "I'm sorry, but I couldn't find your Vitamin D levels in the provided documents [1], [2], and [3]. If you need information about this test result or have concerns regarding it, please consult with a healthcare professional. They can provide personalized advice based on comprehensive medical history and current symptoms.",
+        "absence": true
+      },
+      {
+        "question": "What was my TSH?",
+        "answer": "I'm sorry, but I couldn't find the information about your Thyroid Stimulating Hormone (TSH) levels in any of the documents you provided. If this is a concern for you or if there are symptoms that worry you regarding thyroid function, it would be best to discuss them with your healthcare provider who can order appropriate tests and provide guidance based on their findings.",
+        "absence": true
+      },
+      {
+        "question": "Am I taking metformin? What dose?",
+        "answer": "I'm sorry, but there is no mention of Metformin in your medication list or visit summary documents [1][2]. It seems you are not currently prescribed this medication according to the information provided. If you have concerns about diabetes management and think metformin might be appropriate for you, please discuss it with Dr. Example during your next appointment on 2026-11-20 or contact their clinic directly.",
+        "absence": true
+      },
+      {
+        "question": "What was my creatinine?",
+        "answer": "Your Creatinine level, as per the lab report [1], is 0.98 mg/dL which falls within the reference range of 0.76 to 1.27 mg/dL indicating normal kidney function based on this test alone.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "Is my potassium high?",
+        "answer": "Yes, according to your lab report [1], the Potassium level is at 5.6 mmol/L which falls outside of the reference range (3.5-5.2) and has been flagged as High. It's important that you discuss this with a healthcare professional who can provide guidance based on these results in context to your overall health status.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my eGFR?",
+        "answer": "Your estimated Glomerular Filtration Rate (eGFR) is reported as [2] \"101 mL/min/1.73.\" This value indicates how well your kidneys are filtering waste from the blood and it's within a normal range, according to standard reference values which typically consider an eGFR above 60 mL/min/1.73 as normal for adults [2].",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my glucose?",
+        "answer": "Your fasting blood sugar level, as indicated in your lab reports [1] and [2], is flagged high at 108 mg/dL with a reference range being between 70-99. This suggests that you may have higher than normal glucose levels which could be indicative of diabetes or prediabetes, but it's important to discuss this result further with your healthcare provider for an accurate diagnosis and appropriate management plan [1][2].",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my BUN?",
+        "answer": "Your Blood Urea Nitrogen (BUN) level is [1] reported as being at a value of 15 mg/dL, which falls within the reference range of 6-20 mg/dL. This means that your current BUN levels are considered normal according to standard medical guidelines.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      }
+    ]
+  },
+  "phi3-medquad-v2": {
+    "rates": {
+      "value": "16/16",
+      "direction": "12/12",
+      "citation": "16/16",
+      "absence": "3/3"
+    },
+    "rows": [
+      {
+        "question": "Is my LDL cholesterol high?",
+        "answer": " Yes. According to your lab report, your LDL cholesterol was 162 mg/dL [1], which is above the reference range (<100). Talk with your clinician about what this result means for you.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my A1C?",
+        "answer": " According to your lab report, your hemoglobin A1C was 6.1 % [2], which is above the reference range (<5.7 %). This result is consistent with prediabetes. Talk with your clinician about what this result means for you.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my HDL cholesterol?",
+        "answer": " According to your lab report, your HDL cholesterol was 48 mg/dL [1], which is within the reference range (>40).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "Is my fasting glucose normal?",
+        "answer": " No. According to your lab report, your fasting glucose was 108 mg/dL [2], which is above the reference range (70-99). Talk with your clinician about what this result means for you.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What were my triglycerides?",
+        "answer": " According to your lab report, your triglycerides were 140 mg/dL [2], which is within the reference range (<150 mg/dL).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "Is my creatinine okay?",
+        "answer": " Yes. According to your lab report, your creatinine was 0.9 mg/dL [1], which is within the reference range (0.7-1.3 mg/dL).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my hemoglobin?",
+        "answer": " According to your lab report, your hemoglobin was 14.2 g/dL [2], which is within the reference range (13.5-17.5 g/dL).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What dose of atorvastatin am I taking?",
+        "answer": " According to your medication list, you take Atorvastatin 20 mg once nightly [2].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "How much lisinopril do I take?",
+        "answer": " According to your medication list, you take Lisinopril 10 mg once daily [1].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "Am I allergic to any medications?",
+        "answer": " Your medication list records an allergy to penicillin (hives in 2015). No known food allergies were reported [2].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "What was my blood pressure at my visit?",
+        "answer": " At your visit, your blood pressure was 138/88 mmHg [2].",
+        "value": true,
+        "citation": true
+      },
+      {
+        "question": "What was my vitamin D level?",
+        "answer": " I couldn't find any vitamin D, 25-hydroxy result in your documents. If you've had this test, you can upload that report, or ask your clinician whether it's needed.",
+        "absence": true
+      },
+      {
+        "question": "What was my TSH?",
+        "answer": " I couldn'\u009dt find any TSH result in your documents. If you've had this test, you can upload that report, or ask your clinician whether it's needed.",
+        "absence": true
+      },
+      {
+        "question": "Am I taking metformin? What dose?",
+        "answer": " I couldn't find any mention of metformin in your documents, so I couldn't help. If you have a list of medications that includes this drug, please upload it and I can take a look.",
+        "absence": true
+      },
+      {
+        "question": "What was my creatinine?",
+        "answer": " According to your lab report, your creatinine was 0.98 mg/dL [1], which is within the reference range (0.76-1.27 mg/dL).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "Is my potassium high?",
+        "answer": " Yes. According to your lab report, your potassium was 5.6 mmol/L [1], which is above the reference range (3.5-5.2 mmol/L). Talk with your clinician about what this result means for you.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my eGFR?",
+        "answer": " According to your lab report, your eGFR was 101 mL/min/1.73 [2], which is within the reference range (>59).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my glucose?",
+        "answer": " According to your lab report, your fasting glucose was 108 mg/dL [1], which is above the reference range (70-99 mg/dL). Talk with your clinician about what this result means for you.",
+        "value": true,
+        "citation": true,
+        "direction": true
+      },
+      {
+        "question": "What was my BUN?",
+        "answer": " According to your lab report, your BUN was 15 mg/dL [1], which is within the reference range (6-20 mg/dL).",
+        "value": true,
+        "citation": true,
+        "direction": true
+      }
+    ]
+  }
+}
