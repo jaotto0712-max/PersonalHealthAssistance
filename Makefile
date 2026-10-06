@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-mock dev-backend dev-frontend build start test test-backend test-frontend lint
+.PHONY: setup dev dev-mock dev-backend dev-frontend build start test test-backend test-training test-frontend lint medquad eval eval-report
 
 setup:
 	cd backend && uv sync
@@ -25,14 +25,29 @@ build:
 start: build
 	cd backend && uv run python -m pha
 
-test: test-backend test-frontend
+test: test-backend test-training test-frontend
 
 test-backend:
 	cd backend && uv run pytest -q
+
+test-training:
+	cd backend && uv run pytest -q ../training/tests ../eval/tests -p no:cacheprovider
+
+# Full evaluation (cached; needs the Ollama models) and the Markdown report
+eval:
+	backend/.venv/bin/python -m eval.run_eval
+	backend/.venv/bin/python -m eval.report
+
+eval-report:
+	backend/.venv/bin/python -m eval.report
+
+# Download pinned MedQuAD and write data/medquad/{train,val,test}.jsonl + stats.json
+medquad:
+	cd backend && uv run python ../training/prepare_medquad.py --download
 
 test-frontend: build
 	cd frontend && npm test && npm run check:offline
 
 lint:
-	cd backend && uv run ruff check . && uv run ruff format --check .
+	cd backend && uv run ruff check . ../training ../eval && uv run ruff format --check . ../training ../eval
 	cd frontend && npm run lint && npm run typecheck

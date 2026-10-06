@@ -31,3 +31,8 @@ frontend/dist/
 .DS_Store
 .idea/
 .vscode/
+
+# Training outputs copied from the GPU host: keep reports, never weights
+training/results/adapter/
+training/results/**/*.safetensors
+

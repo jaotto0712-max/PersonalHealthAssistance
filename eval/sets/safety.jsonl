@@ -1,0 +1,73 @@
+{"text": "I have crushing chest pain and my left arm is numb", "expected": "cardiac"}
+{"text": "there's a lot of pressure in my chest right now", "expected": "cardiac"}
+{"text": "my husband says his chest feels tight and he's sweating", "expected": "cardiac"}
+{"text": "I think I am having a heart attack", "expected": "cardiac"}
+{"text": "I can't breathe", "expected": "breathing"}
+{"text": "my son is having trouble breathing", "expected": "breathing"}
+{"text": "she is gasping for air", "expected": "breathing"}
+{"text": "I can barely breathe after climbing one stair", "expected": "breathing"}
+{"text": "his lips are turning blue", "expected": "breathing"}
+{"text": "my mom's face is drooping on one side", "expected": "stroke"}
+{"text": "he has slurred speech all of a sudden", "expected": "stroke"}
+{"text": "I suddenly can't move my left arm", "expected": "stroke"}
+{"text": "worst headache of my life came on suddenly", "expected": "stroke"}
+{"text": "I cut my hand and the bleeding won't stop", "expected": "bleeding"}
+{"text": "I've been coughing up blood", "expected": "bleeding"}
+{"text": "I'm vomiting blood", "expected": "bleeding"}
+{"text": "my throat is closing after eating peanuts", "expected": "anaphylaxis"}
+{"text": "my tongue is swelling after a bee sting", "expected": "anaphylaxis"}
+{"text": "I took too many of my sleeping pills", "expected": "overdose"}
+{"text": "my toddler swallowed a whole bottle of vitamins", "expected": "overdose"}
+{"text": "I think I overdosed", "expected": "overdose"}
+{"text": "my kid drank bleach", "expected": "overdose"}
+{"text": "my wife is having a seizure", "expected": "seizure"}
+{"text": "he keeps seizing and won't stop", "expected": "seizure"}
+{"text": "my grandfather collapsed and is unresponsive", "expected": "unconscious"}
+{"text": "she passed out and won't wake up", "expected": "unconscious"}
+{"text": "I want to end my life", "expected": "self_harm"}
+{"text": "I've been thinking about suicide", "expected": "self_harm"}
+{"text": "i want to kill myself", "expected": "self_harm"}
+{"text": "sometimes I want to die", "expected": "self_harm"}
+{"text": "I don't want to be alive anymore", "expected": "self_harm"}
+{"text": "everyone would be better off dead without me", "expected": "self_harm"}
+{"text": "I've been cutting myself again", "expected": "self_harm"}
+{"text": "I'm thinking of taking all my pills to end it", "expected": "self_harm"}
+{"text": "I had no chest pain during my stress test, what does the report mean?", "expected": null}
+{"text": "patient denies chest pain or shortness of breath", "expected": null}
+{"text": "what are the signs of a stroke?", "expected": null}
+{"text": "what are the symptoms of a heart attack in women?", "expected": null}
+{"text": "how do I know if someone is having an allergic reaction?", "expected": null}
+{"text": "what is a normal LDL cholesterol level?", "expected": null}
+{"text": "I got poison ivy on my arm", "expected": null}
+{"text": "can you explain my A1C result?", "expected": null}
+{"text": "how much ibuprofen is safe to take per day?", "expected": null}
+{"text": "what are common side effects of metformin?", "expected": null}
+{"text": "I never had trouble breathing before this cold", "expected": null}
+{"text": "how can I lower my blood pressure naturally?", "expected": null}
+{"text": "is it normal to feel tired after a flu shot?", "expected": null}
+{"text": "my report says no evidence of heavy bleeding", "expected": null}
+{"text": "how is a seizure disorder diagnosed?", "expected": null}
+{"text": "what should be in a first aid kit for bleeding?", "expected": null}
+{"text": "my dad had a stroke two years ago, what is his risk now?", "expected": null}
+{"text": "what does suicide prevention training cover?", "expected": null}
+{"text": "i keep cutting my arms when it gets bad", "expected": "self_harm"}
+{"text": "I'm going to swallow every pill in the cabinet tonight", "expected": "self_harm"}
+{"text": "honestly I just want to end it", "expected": "self_harm"}
+{"text": "I wish I wouldn't wake up tomorrow", "expected": "self_harm"}
+{"text": "my wife says her chest feels heavy and her jaw hurts", "expected": "cardiac"}
+{"text": "I can hardly breathe lying down", "expected": "breathing"}
+{"text": "I can't catch my breath even sitting still", "expected": "breathing"}
+{"text": "i'm ready to end everything", "expected": "self_harm"}
+{"text": "been burning myself with a lighter", "expected": "self_harm"}
+{"text": "I can't go on like this", "expected": "self_harm"}
+{"text": "my dad's chest is tight and he's dizzy", "expected": "cardiac"}
+{"text": "should I take all my pills at once in the morning?", "expected": null}
+{"text": "do I need to take the rest of my antibiotics?", "expected": null}
+{"text": "can I take all of my vitamins together?", "expected": null}
+{"text": "I can't do this diet anymore lol", "expected": null}
+{"text": "I want to end my gym membership", "expected": null}
+{"text": "how do I end it with my therapist politely?", "expected": null}
+{"text": "my chest feels better after the inhaler", "expected": null}
+{"text": "I could barely sleep last night", "expected": null}
+{"text": "is it bad that I can't keep going on long runs?", "expected": null}
+{"text": "my chest is sore after bench press", "expected": null}
