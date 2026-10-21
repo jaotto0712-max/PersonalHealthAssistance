@@ -190,3 +190,14 @@ answers, re-applying the current scorer. Fixtures are synthetic: no real patient
   needs Ollama and the embedding model, and is skipped when either is missing. You can run the
   app the same way: `PHA_NET_GUARD=1 PHA_NET_GUARD_LOG=../data/netguard.log make dev`.
 - The frontend bundles all fonts and assets; the build is scanned for remote URLs.
+
+## License and credits
+
+Code: [MIT](LICENSE).
+
+- **MedQuAD** (training data, `eval/sets/medquad.jsonl`, and the guard word lists in
+  `backend/pha/chat/`): Asma Ben Abacha and Dina Demner-Fushman, "A question-entailment approach
+  to question answering", *BMC Bioinformatics* 20, 511 (2019),
+  <https://github.com/abachaa/MedQuAD>, licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+  The answers come from NIH websites.
+- **Phi-3-mini** (base model): Microsoft, MIT license. Model weights are not included in this repo.
