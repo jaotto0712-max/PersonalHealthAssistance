@@ -77,7 +77,7 @@ type Overrides = Partial<ApiClient> & {
 
 export function fakeClient(overrides: Overrides = {}): ApiClient {
   const {
-    healthValue = { status: 'ok', version: 'test', llm: 'ok', model: 'phi3-medquad-v2' },
+    healthValue = { status: 'ok', version: 'test', llm: 'ok', model: 'phi3-medquad-v3' },
     docs = [],
     conversations = [],
     ...rest

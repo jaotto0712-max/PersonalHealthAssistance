@@ -8,7 +8,7 @@ def test_defaults():
     s = Settings()
     assert (s.host, s.port) == ("127.0.0.1", 8000)
     assert s.ollama_url == "http://127.0.0.1:11434"
-    assert s.model == "phi3-medquad-v2"
+    assert s.model == "phi3-medquad-v3"
 
 
 def test_env_override(monkeypatch):

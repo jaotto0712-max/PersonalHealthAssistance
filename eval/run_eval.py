@@ -25,7 +25,7 @@ from pha.safety.emergency import detect_emergency
 
 SETS = REPO_ROOT / "eval" / "sets"
 RESULTS = REPO_ROOT / "eval" / "results"
-DEFAULT_MODELS = ["phi3-base", "phi3-medquad", "phi3-medquad-v2"]
+DEFAULT_MODELS = ["phi3-base", "phi3-medquad", "phi3-medquad-v2", "phi3-medquad-v3"]
 
 
 def load(name: str) -> list[dict]:

@@ -28,7 +28,7 @@ ABSENT = re.compile(
     r"(couldn'?t find|could not find|"
     r"not (?:included|listed|found|present|mentioned|provided|available|reported|shown)|"
     r"no (?:\w+ )?(?:result|record|value|information|mention)|no mention|don'?t see|"
-    r"isn'?t (?:included|listed)|not (?:currently )?prescribed)",
+    r"isn'?t (?:included|listed)|doesn'?t (?:include|list|mention)|not (?:currently )?prescribed)",
     re.I,
 )
 INVENTED_VALUE = re.compile(r"\b\d+(\.\d+)?\s*(mg|ng|%|mIU|mmol|g/dL|mcg|pg|IU|U/L)\b", re.I)

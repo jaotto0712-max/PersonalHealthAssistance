@@ -33,7 +33,8 @@ _Screenshots use the built-in mock API (`make dev-mock`); answers shown are illu
   about earlier values.
 - **Safety first.** Emergencies and crises get 911/988 guidance by rule, without calling the
   model. Every answer carries a disclaimer. A guard stops looping or garbled output while it
-  streams.
+  streams, an answer that copies an earlier one is regenerated, and
+  short unclear messages get a request to rephrase (with a spelling suggestion) instead of a guess.
 - **Saved conversations.** Multiple chats in a local SQLite database, with rename, delete and
   delete-all.
 - **Fully local.** Loopback only, offline model libraries, no telemetry. This is verified by an
@@ -50,7 +51,7 @@ _Screenshots use the built-in mock API (`make dev-mock`); answers shown are illu
                 │                              │       └─ uploads: parse → lab tables   │
                 │                              │                  → chunk → embed       │
                 │                              ├──▶ Ollama (127.0.0.1:11434)            │
-                │                              │      phi3-medquad-v2 (LoRA, Q4_K_M)    │
+                │                              │      phi3-medquad-v3 (LoRA, Q4_K_M)    │
                 │                              │      → degeneration guard → stream     │
                 │                              └──▶ SQLite chat history (data/chats.db) │
                 └───────────────────────────────────────────────────────────────────────┘
@@ -98,9 +99,11 @@ Configuration is via `PHA_`-prefixed environment variables or `backend/.env` —
 
 ## Running with a local model
 
-The default model is **`phi3-medquad-v2`**: Phi-3-mini with a LoRA fine-tune on cleaned MedQuAD plus
-grounded examples, Q4_K_M. On the grounding probe it matches or beats the unmodified `phi3-base`
-(11/11 exact values, 7/7 high/normal calls, 11/11 citations, 3/3 "not found"). The first fine-tune,
+The default model is **`phi3-medquad-v3`**: Phi-3-mini with a LoRA fine-tune on cleaned MedQuAD,
+grounded examples and multi-turn conversations about personal records, Q4_K_M. It answers 54 of
+57 record questions correctly (`phi3-base` 47, v2 46), including every held-out follow-up, and
+scores perfectly on the grounding probe (16/16 exact values, 12/12 high/normal calls, 16/16
+citations, 3/3 "not found"). `phi3-medquad-v2` was the previous default. The first fine-tune,
 `phi3-medquad` (v1), ignored the user's documents and is kept only for comparison. See
 [`training/model_card.md`](training/model_card.md). Any installed Ollama model works for development:
 
@@ -124,16 +127,18 @@ retrieval top-4 with bge-small-en-v1.5:
 | Backend startup (embedding model load) | ~3 s |
 
 With `phi3-medquad-v2` on the same machine: time to first token 0.1–0.9 s, about 106 tokens/s.
+`phi3-medquad-v3` runs at the same speed (eval run: 0.48 s median to first text, v2 0.52 s).
 
 ## Reproducing the model
 
-`phi3-medquad-v2` is Phi-3-mini fine-tuned with LoRA on template-cleaned MedQuAD rendered in the app's
-retrieval format (RAFT-style), plus synthetic personal-record questions. See [`training/model_card.md`](training/model_card.md).
+`phi3-medquad-v3` is Phi-3-mini fine-tuned with LoRA on template-cleaned MedQuAD rendered in the app's
+retrieval format (RAFT-style), plus synthetic personal-record questions and multi-turn conversations
+in the app's chat-history format. See [`training/model_card.md`](training/model_card.md).
 
-1. **Data:** `make medquad` writes the v1 splits. For v2, run `backend/.venv/bin/python training/prepare_medquad.py --download --out data/medquad-v2 --clean-templates --grounded --synthetic-train 2500 --synthetic-val 250`. The notebook does this for you when `V2 = True`.
-2. **Train (GPU):** open [`training/train_lora.ipynb`](training/train_lora.ipynb) on UF HiPerGator (guide: [`training/hpc/README.md`](training/hpc/README.md); v2 was trained on 2× L4) or on Colab. Smoke-test, restart the kernel, then run in full. The notebook saves the adapter, merges it, and exports `phi3-medquad-v2` (and `phi3-base` if missing) as GGUF Q4_K_M.
-3. **Install locally:** copy the `.gguf` files into `models/`, then run `cd models && ollama create phi3-medquad-v2 -f Modelfile.medquad-v2 && ollama create phi3-base -f Modelfile.base`.
-4. **Check:** `backend/.venv/bin/python training/grounding_probe.py phi3-base phi3-medquad-v2`.
+1. **Data:** `make medquad` writes the v1 splits. For v3, run `backend/.venv/bin/python training/prepare_medquad.py --download --out data/medquad-v3 --clean-templates --grounded --v3 --synthetic-train 4000 --synthetic-val 400`. The notebook does this for you (`VERSION = 3`; `VERSION = 2` rebuilds v2).
+2. **Train (GPU):** open [`training/train_lora.ipynb`](training/train_lora.ipynb) on UF HiPerGator (guide: [`training/hpc/README.md`](training/hpc/README.md); v2 and v3 were trained on 2× L4, about 1 epoch) or on Colab. Smoke-test, restart the kernel, then run in full. The notebook saves the adapter, merges it, and exports `phi3-medquad-v3` (and `phi3-base` if missing) as GGUF Q4_K_M.
+3. **Install locally:** copy the `.gguf` files into `models/`, then run `cd models && ollama create phi3-medquad-v3 -f Modelfile.medquad-v3 && ollama create phi3-base -f Modelfile.base`.
+4. **Check:** `backend/.venv/bin/python training/grounding_probe.py phi3-base phi3-medquad-v3`.
 
 You can also export locally with `training/export_gguf.sh <hf_dir_or_id> <name>`, which uses a pinned llama.cpp and needs cmake. Add `REGISTER=1` to also run `ollama create`.
 
@@ -146,17 +151,25 @@ local Ollama models. It then writes [`eval/report/REPORT.md`](eval/report/REPORT
 
 | Set | Size | What it checks |
 |---|---|---|
-| `records` | 49 | questions about the fixture records: values, citations, high/low calls, missing items, follow-ups, current vs previous results, same-name tests (blood vs urine), no documents |
+| `records` | 57 | questions about the fixture records: values, citations, high/low calls, missing items, follow-ups (9, plus 8 held-out wordings never used in training), current vs previous results, same-name tests (blood vs urine), no documents |
 | `medquad` | 200 | held-out MedQuAD questions on unseen topics: ROUGE-L and embedding similarity to NIH answers |
 | `safety` | 73 | emergency and crisis rules: 45 emergencies, 28 look-alikes that must not trigger |
 
-**Results (2026-10-06):** v2 answers 42 of 49 record questions correctly with documents (base
-40, v1 11), with no previous result ever reported as current. Its weak spot is multi-turn
-follow-ups (4 of 9). The first emergency rules missed 4 of 34 test emergencies; after
-broadening them, all 45 are caught, with 1 false alarm in 28 look-alikes. Details:
-[`training/model_card.md`](training/model_card.md#evaluation-suite-2026-10-06).
+**Results (2026-10-07):**
 
-Each set runs for `phi3-base`, v1 and v2, with retrieval on and off. Results are cached per pipeline
+| | `phi3-base` | v2 | **v3 (default)** |
+|---|---|---|---|
+| Record questions, with documents | 47/57 | 46/57 | **54/57** |
+| Held-out follow-ups | 6/8 | 4/8 | **8/8** |
+| Previous result reported as current | 0/11 | 0/11 | 0/11 |
+| MedQuAD similarity to NIH answers | 0.854 | 0.845 | 0.849 |
+
+v2's weak spot was multi-turn follow-ups. v3 was trained on conversations to fix it, and the
+acceptance targets set before training were all met. The first emergency rules missed 4 of 34
+test emergencies; after broadening them, all 45 are caught, with 1 false alarm in 28
+look-alikes. Details: [`training/model_card.md`](training/model_card.md#evaluation-suite-v3-2026-10-07).
+
+Each set runs for `phi3-base`, v1, v2 and v3, with retrieval on and off (v1 was last run on 49 questions). Results are cached per pipeline
 fingerprint, so re-runs only ask what changed. `make eval-report` rebuilds the report from cached
 answers, re-applying the current scorer. Fixtures are synthetic: no real patient data is used.
 

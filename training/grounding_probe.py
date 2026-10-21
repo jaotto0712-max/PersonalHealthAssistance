@@ -41,7 +41,7 @@ CLAIMS_ABNORMAL = re.compile(
 ABSENT_WORDS = re.compile(
     r"(couldn'?t find|could not find|not (?:included|listed|found|present|mentioned)|"
     r"no (?:\w+ )?(?:result|record|value|information)|no mention|not (?:currently )?prescribed|"
-    r"don'?t see|isn'?t (?:included|listed))",
+    r"don'?t see|isn'?t (?:included|listed)|doesn'?t (?:include|list|mention))",
     re.I,
 )
 

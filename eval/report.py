@@ -15,9 +15,14 @@ from pha.config import REPO_ROOT
 RESULTS = REPO_ROOT / "eval" / "results"
 OUT = REPO_ROOT / "eval" / "report" / "REPORT.md"
 CATEGORIES = ["value", "citation", "direction", "absent", "followup", "current_vs_previous",
-              "same_name_ambiguity", "no_documents"]  # fmt: skip
-MODEL_ORDER = ["phi3-base", "phi3-medquad", "phi3-medquad-v2"]
-LABEL = {"phi3-base": "base", "phi3-medquad": "v1", "phi3-medquad-v2": "v2"}
+              "same_name_ambiguity", "no_documents", "followup_heldout"]  # fmt: skip
+MODEL_ORDER = ["phi3-base", "phi3-medquad", "phi3-medquad-v2", "phi3-medquad-v3"]
+LABEL = {
+    "phi3-base": "base",
+    "phi3-medquad": "v1",
+    "phi3-medquad-v2": "v2",
+    "phi3-medquad-v3": "v3",
+}
 
 
 def rows(set_name: str) -> dict[tuple[str, str], list[dict]]:
@@ -207,6 +212,8 @@ def build() -> str:
            "see `openspec/changes/archive/2026-10-06-add-lab-table-extraction`).",
            "- Scorers are rules (unit-tested on real answers in `eval/tests`); ROUGE-L and embedding similarity "
            "reward resemblance to NIH answers, not clinical correctness.",
+           "- v1 (`phi3-medquad`) was not re-run after the set grew from 49 to 57 questions; its row uses the "
+           "49-question run.",
            "- Not a clinical validation. The assistant gives general information only."]  # fmt: skip
     return "\n".join(md) + "\n"
 

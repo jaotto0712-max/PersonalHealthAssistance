@@ -164,6 +164,24 @@ def clean_templates(records: list[Record]) -> tuple[list[Record], Counter]:
     return out, counts
 
 
+KEY_POINTS = re.compile(r"\AKey Points\s*\n[^\n]*\n+")
+
+
+def strip_key_points(records: list[Record]) -> tuple[list[Record], Counter]:
+    """v3: CancerGov answers open with a "Key Points" bullet summary whose points then return as
+    section headings, so a model that copies the format repeats itself (the guard stopped 25/200
+    v2 answers this way). Keep the body, drop the summary."""
+    counts: Counter = Counter()
+    out = []
+    for r in records:
+        body = KEY_POINTS.sub("", r.answer, count=1)
+        if body != r.answer and len(body) >= MIN_ANSWER_CHARS:
+            counts["template_key_points_stripped"] += 1
+            r = Record(r.id, r.question, body, r.focus, r.qtype, r.source)
+        out.append(r)
+    return out, counts
+
+
 # ---------------------------------------------------------------- splitting
 
 
@@ -265,11 +283,14 @@ def render_grounded(records: list[Record], prompts: Prompts, seed: int) -> list[
     return rows
 
 
-def synthetic_rows(count: int, seed: int, prompts: Prompts, split: str) -> list[dict]:
+def synthetic_rows(
+    count: int, seed: int, prompts: Prompts, split: str, version: int = 2
+) -> list[dict]:
     import synthetic_records as sr
 
+    examples = sr.generate_v3(count, seed) if version >= 3 else sr.generate(count, seed)
     rows = []
-    for i, ex in enumerate(sr.generate(count, seed)):
+    for i, ex in enumerate(examples):
         system = pf.system_with_excerpts(prompts.base, prompts.rag, ex.excerpts)
         rows.append(
             {
@@ -278,8 +299,10 @@ def synthetic_rows(count: int, seed: int, prompts: Prompts, split: str) -> list[
                 "qtype": ex.kind,
                 "source": "synthetic_records",
                 "mode": "synthetic",
+                # the app's order: system (with excerpts), earlier turns, the new question
                 "messages": [
                     {"role": "system", "content": system},
+                    *getattr(ex, "history", []),
                     {"role": "user", "content": ex.question},
                     {"role": "assistant", "content": ex.answer},
                 ],
@@ -380,6 +403,12 @@ def main(argv: list[str] | None = None) -> dict:
         "--synthetic-train", type=int, default=0, help="synthetic record examples (train)"
     )
     v2.add_argument("--synthetic-val", type=int, default=0, help="synthetic record examples (val)")
+    v3 = parser.add_argument_group("v3 (multi-turn, app extraction format)")
+    v3.add_argument(
+        "--v3",
+        action="store_true",
+        help="strip MedQuAD Key Points summaries; v3 synthetic mix (multi-turn, no-range tests)",
+    )
     args = parser.parse_args(argv)
     if not args.source and not args.download:
         parser.error("pass --source or --download")
@@ -390,6 +419,9 @@ def main(argv: list[str] | None = None) -> dict:
     if args.clean_templates:
         records, template_counts = clean_templates(records)
         dropped.update(template_counts)
+    if args.v3:
+        records, key_point_counts = strip_key_points(records)
+        dropped.update(key_point_counts)
     splits = group_split(records, args.seed)
     system_prompt = args.system_prompt.read_text().strip()
 
@@ -403,9 +435,13 @@ def main(argv: list[str] | None = None) -> dict:
         no_context = pf.system_without_excerpts(prompts.base, prompts.no_context)
         rows = {
             "train": render_grounded(splits["train"], prompts, args.seed + 1)
-            + synthetic_rows(args.synthetic_train, args.seed + 101, prompts, "train"),
+            + synthetic_rows(
+                args.synthetic_train, args.seed + 101, prompts, "train", 3 if args.v3 else 2
+            ),
             "val": render_grounded(splits["val"], prompts, args.seed + 2)
-            + synthetic_rows(args.synthetic_val, args.seed + 102, prompts, "val"),
+            + synthetic_rows(
+                args.synthetic_val, args.seed + 102, prompts, "val", 3 if args.v3 else 2
+            ),
             # test stays closed-book so held-out QA metrics remain comparable across versions
             "test": [to_chat(r, no_context) for r in splits["test"]],
         }
