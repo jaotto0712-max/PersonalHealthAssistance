@@ -7,6 +7,7 @@ Layout (retrieved context goes in the system turn so the user turn matches train
 """
 
 import math
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -55,6 +56,32 @@ def _system(base: str, chunks: list[StoredHit]) -> str:
     return f"{base}\n\n{NO_CONTEXT_INSTRUCTIONS}"
 
 
+COPY_CHECK_CHARS = 160
+CITATION_MARK = re.compile(r"\[\d{1,2}\]")
+
+
+def answer_key(text: str) -> str:
+    """How the start of an answer is compared with earlier ones (case, spacing, [n] ignored)."""
+    return " ".join(CITATION_MARK.sub("", text).lower().split())[:COPY_CHECK_CHARS]
+
+
+def without_repeated_answers(history: list[ChatMessage]) -> list[ChatMessage]:
+    """Drop exchanges whose answer repeats a later answer. A chat holding the same answer many
+    times (copies from before the copy check existed) made v3 produce garbage on every try."""
+    keep = [True] * len(history)
+    seen: set[str] = set()
+    for i in range(len(history) - 1, -1, -1):
+        if history[i].role != "assistant":
+            continue
+        key = answer_key(history[i].content)
+        if key in seen:
+            keep[i] = False
+            if i > 0 and history[i - 1].role == "user":
+                keep[i - 1] = False
+        seen.add(key)
+    return [t for t, k in zip(history, keep, strict=True) if k]
+
+
 def build_prompt(
     base_system: str,
     message: str,
@@ -73,7 +100,7 @@ def build_prompt(
     chunks = sorted(chunks, key=lambda c: c.score, reverse=True)
     while len(chunks) > 1 and estimate_tokens(format_excerpts(chunks)) > CONTEXT_TOKEN_CAP:
         chunks = chunks[:-1]
-    turns = list(history)
+    turns = without_repeated_answers(history)
     while turns and sum(estimate_tokens(t.content) for t in turns) > HISTORY_TOKEN_CAP:
         turns = turns[1:]
 

@@ -87,7 +87,7 @@ def test_validation_422(make_client, body):
 
 def test_llm_unavailable_error_event(make_client):
     client = make_client(FakeLLM(error=LlmUnavailable("Cannot reach Ollama.")), with_docs=False)
-    events = parse_sse(client.post("/api/chat", json={"message": "hello"}).text)
+    events = parse_sse(client.post("/api/chat", json={"message": "what is cholesterol?"}).text)
     assert events[-1] == ("error", {"code": "llm_unavailable", "message": "Cannot reach Ollama."})
 
 

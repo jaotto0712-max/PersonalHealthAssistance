@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 
@@ -110,3 +111,80 @@ def test_real_good_answers_are_never_cut(path):
 
 def test_stopped_note_is_markdown_italic():
     assert STOPPED_NOTE.strip().startswith("_(") and STOPPED_NOTE.strip().endswith(")_")
+
+
+GARBLED = (
+    "- Itinerary information. I'ureaseacherithesealth to prescription medication and treatment "
+    "advice NI ameducounticeaseither assume it is a healthatheliefallithere: You cannabody. "
+    "Tookailwaysaidicate the following, accurate information."
+)
+
+
+def feed_all(text: str) -> tuple[DegenerationGuard, str]:
+    guard = DegenerationGuard()
+    shown = "".join(guard.feed(t) for t in re.findall(r"\S+\s*", text)) + guard.flush()
+    return guard, shown
+
+
+def test_mashed_words_are_stopped_before_they_are_shown():
+    # a real phi3-medquad-v2 answer (2026-10-06)
+    guard, shown = feed_all(GARBLED)
+    assert guard.stopped and guard.reason == "gibberish"
+    assert "ureaseacher" not in shown and "Itinerary information." in shown
+    assert "garbled" in guard.note
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Hyperparathyroidism and hydrochlorothiazide can both raise calcium levels.",
+        "Non-small cell lung cancers include squamous cell carcinoma, cystadenocarcinoma and "
+        "bronchioalveolar carcinoma.",
+        "This enzyme is pseudocholinesterase, also called butyrylcholinesterase.",
+        "Visit SmokefreeWomen and SmokefreeEspanol for help quitting.",
+    ],
+)
+def test_real_long_words_are_not_garbled(sentence):
+    guard, shown = feed_all(sentence + " Done.")
+    assert not guard.stopped, guard.reason
+    assert shown.startswith(sentence)
+
+
+def test_repeat_stops_keep_the_repeating_note():
+    guard, _ = feed_all("This exact sentence repeats forever. " * 3)
+    assert guard.reason == "repeated_sentence" and "repeating itself" in guard.note
+
+
+@pytest.mark.parametrize(
+    ("text", "shown_before"),
+    [
+        # real v3 answers (2026-10-07) from a chat full of repeated answers, on every try
+        (
+            "and use. Yourpanding to help7ithway.sniets -3oclaimi and-to this document your "
+            "evidence. If notice.",
+            "and use. ",
+        ),
+        (
+            "vokitheithway. Use. -4do yoursand4a4 the document to quote and not4miadicequmiasing "
+            "not treatyourgap",
+            "vokitheithway. Use. ",
+        ),
+    ],
+)
+def test_short_garbled_words_are_cut(text, shown_before):
+    shown, g = run(text)
+    assert g.stopped and g.reason == "gibberish" and shown == shown_before
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Mutations in the GTPase gene change how GTPases and ATPases work.",
+        "See labcorp_test_results.pdf and www.nlm.nih.gov for details.",
+        "Your eGFR was 101 mL/min/1.73m2 [1]. HbA1c and vitamin B12 were normal in 2nd test.",
+        "COVID19 and covid19 vaccines, CD4 counts and H2O are fine; so is dup22q11 deletion.",
+    ],
+)
+def test_enzymes_files_and_units_are_not_garbled(text):
+    shown, g = run(text)
+    assert shown == text and not g.stopped

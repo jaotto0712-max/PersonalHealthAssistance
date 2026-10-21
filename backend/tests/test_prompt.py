@@ -3,6 +3,7 @@ from pha.chat.prompt import (
     RAG_INSTRUCTIONS,
     build_prompt,
     load_system_prompt,
+    without_repeated_answers,
 )
 from pha.config import get_settings
 from pha.llm.base import ChatMessage
@@ -78,3 +79,24 @@ def test_shared_system_prompt_file_is_used_and_forbids_prescribing():
     text = load_system_prompt(get_settings().system_prompt_path)
     assert "never tell anyone to start, stop, or change a medication" in text
     assert "clinician" in text
+
+
+def test_repeated_answers_are_collapsed_to_the_latest():
+    copy = "I couldn't find any dietary advice related to DIEBATIC in your documents. " * 3
+    history = [
+        ChatMessage("user", "lower my blood pressure?"),
+        ChatMessage("assistant", "Eat less salt."),
+    ]
+    for q in ("ok cs", "hash", "why repeat"):
+        history += [
+            ChatMessage("user", q),
+            ChatMessage("assistant", copy + " [2]" if q == "hash" else copy),
+        ]
+    kept = without_repeated_answers(history)
+    assert [t.content for t in kept] == [
+        "lower my blood pressure?",
+        "Eat less salt.",
+        "why repeat",
+        copy,
+    ]
+    assert without_repeated_answers(history[:2]) == history[:2]

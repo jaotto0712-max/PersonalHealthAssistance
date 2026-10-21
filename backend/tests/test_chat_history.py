@@ -140,7 +140,7 @@ def test_server_history_is_used_and_client_history_ignored(app_parts):
 
 def test_stateless_chat_writes_nothing(app_parts):
     with client_for(app_parts, FakeLLM("ok.")) as api:
-        api.post("/api/chat", json={"message": "hello", "history": []})
+        api.post("/api/chat", json={"message": "what is cholesterol?", "history": []})
         assert api.get("/api/conversations").json() == []
 
 
@@ -156,7 +156,7 @@ def test_error_and_emergency_outcomes_are_saved(app_parts):
     docs, store = app_parts
     with client_for(app_parts, FakeLLM(error=LlmUnavailable("Ollama is not running."))) as api:
         cid = api.post("/api/conversations").json()["id"]
-        api.post("/api/chat", json={"message": "hello there", "conversation_id": cid})
+        api.post("/api/chat", json={"message": "what is cholesterol?", "conversation_id": cid})
         api.post(
             "/api/chat", json={"message": "I have crushing chest pain", "conversation_id": cid}
         )

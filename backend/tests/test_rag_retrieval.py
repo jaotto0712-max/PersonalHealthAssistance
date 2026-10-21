@@ -56,3 +56,17 @@ def test_self_contained_question_ignores_the_previous_message(tmp_path):
     svc = _two_docs(tmp_path)
     hits = svc.retriever.search("What was my LDL cholesterol?", previous="What was my BUN?")
     assert [h.filename for h in hits] == ["lipids.txt"]
+
+
+def test_history_words_cover_everyday_phrasings():
+    from pha.rag.retriever import HISTORY_QUERY
+
+    for q in [
+        "Is it going up?",
+        "Was it better on my last test?",
+        "Is it improving?",
+        "Has it changed?",
+    ]:
+        assert HISTORY_QUERY.search(q), q
+    for q in ["What was my BUN?", "Is that high?", "What should it be?"]:
+        assert not HISTORY_QUERY.search(q), q

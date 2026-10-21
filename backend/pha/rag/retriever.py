@@ -10,7 +10,8 @@ from pha.rag.store import StoredHit, VectorStore
 # Everything else gets current results only: small models otherwise report old values as current.
 HISTORY_QUERY = re.compile(
     r"\b(previous|previously|prior|before|earlier|last time|older|old|trend|trends|change|changed|"
-    r"compare|compared|history|over time|used to)\b",
+    r"compare|compared|history|over time|used to|last (test|one|report|year|visit|check)|"
+    r"going (up|down)|getting (better|worse)|improv\w*|went (up|down))\b",
     re.IGNORECASE,
 )
 # Messages that lean on the previous turn ("What was it last time?", "And my HDL?"): on their

@@ -88,14 +88,14 @@ async def test_history_passed_to_model(docs):
 
 async def test_llm_unavailable_emits_error_event():
     llm = FakeLLM(error=LlmUnavailable("Cannot reach Ollama."))
-    events = await collect(ChatOrchestrator(llm, None, "BASE", OPTIONS), "hello")
+    events = await collect(ChatOrchestrator(llm, None, "BASE", OPTIONS), "what is cholesterol?")
     assert [e.name for e in events] == ["meta", "error"]
     assert events[-1].data == {"code": "llm_unavailable", "message": "Cannot reach Ollama."}
 
 
 async def test_mid_stream_failure_emits_error_after_partial_tokens():
     llm = FakeLLM("one two three four", fail_after=2, error=LlmUnavailable("lost connection"))
-    events = await collect(ChatOrchestrator(llm, None, "BASE", OPTIONS), "hello")
+    events = await collect(ChatOrchestrator(llm, None, "BASE", OPTIONS), "what is cholesterol?")
     assert [e.name for e in events] == ["meta", "token", "error"]
     assert events[1].data["text"] == "one two "  # partial text is still shown before the error
 
@@ -106,7 +106,7 @@ async def test_unexpected_exception_is_not_leaked():
             raise RuntimeError("secret internal detail")
             yield  # pragma: no cover
 
-    events = await collect(ChatOrchestrator(Boom(), None, "BASE", OPTIONS), "hello")
+    events = await collect(ChatOrchestrator(Boom(), None, "BASE", OPTIONS), "what is cholesterol?")
     assert events[-1].data == {"code": "llm_error", "message": "The model failed to respond."}
 
 
@@ -115,7 +115,7 @@ async def test_cancellation_stops_generation():
     orchestrator = ChatOrchestrator(llm, None, "BASE", OPTIONS)
 
     async def consume():
-        async for _ in orchestrator.run("hello", []):
+        async for _ in orchestrator.run("what is cholesterol?", []):
             pass
 
     task = asyncio.create_task(consume())
@@ -252,3 +252,116 @@ async def test_no_same_name_notice_when_specific_or_unrelated(renal, question):
     assert "_Note: your report has" not in "".join(
         e.data["text"] for e in events if e.name == "token"
     )
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Hi",
+        "HI",
+        "hello there!",
+        "Good morning",
+        "thanks!",
+        "Thank you so much",
+        "ok",
+        "bye",
+        "stop",
+        "skip",
+        "never mind",
+    ],
+)
+async def test_small_talk_gets_a_fixed_reply_without_retrieval_or_model(renal, message):
+    llm = FakeLLM("This must not be generated.")
+    events = await collect(ChatOrchestrator(llm, renal.retriever, "BASE", OPTIONS), message)
+    text = "".join(e.data["text"] for e in events if e.name == "token")
+    assert events[0].data["retrieved_count"] == 0 and events[0].data["small_talk"] is True
+    assert "must not" not in text and text
+    assert llm.calls == []  # the model is never asked
+    assert [e.name for e in events][-2:] == ["sources", "done"]
+
+
+@pytest.mark.parametrize(
+    "message",
+    ["Hi, what was my creatinine?", "thanks, and what about my BUN?", "hello is my eGFR ok"],
+)
+async def test_greeting_plus_question_is_answered_normally(renal, message):
+    llm = FakeLLM("Answer [1].")
+    events = await collect(ChatOrchestrator(llm, renal.retriever, "BASE", OPTIONS), message)
+    assert llm.calls and "small_talk" not in events[0].data
+
+
+async def test_emergency_still_wins_over_small_talk(renal):
+    events = await collect(
+        ChatOrchestrator(FakeLLM("x"), renal.retriever, "BASE", OPTIONS), "hi, I can't breathe"
+    )
+    assert events[0].data["emergency"] is True
+
+
+# A real v3 copy (2026-10-07): asked "ok cs" after this answer, the model repeated it verbatim.
+DASH = (
+    "I couldn't find any dietary advice related to DIEBATIC in your documents, so here is general "
+    "information.\n\nThe Dietary Approaches To Stop Hypertension Eating Plan includes foods rich "
+    "in potassium, calcium, magnesium, protein, fiber and other nutrients that can help lower "
+    "your blood pressure."
+)
+COPY_HISTORY = [ChatMessage("user", "what about the diebatic"), ChatMessage("assistant", DASH)]
+
+
+def tokens(events) -> str:
+    return "".join(e.data["text"] for e in events if e.name == "token")
+
+
+async def test_copied_previous_answer_is_discarded_and_asked_without_history():
+    def reply(messages):  # copies whenever the earlier answer is in the prompt
+        if any(m.role == "assistant" for m in messages):
+            return DASH + " The plan also limits sodium. It is widely used."
+        return "Could you tell me a bit more about what you'd like to know?"
+
+    llm = FakeLLM(reply)
+    events = await collect(
+        ChatOrchestrator(llm, None, "BASE", OPTIONS), "what about salt?", COPY_HISTORY
+    )
+    assert tokens(events) == "Could you tell me a bit more about what you'd like to know?"
+    assert len(llm.calls) == 2 and llm.cancelled  # the copy was cancelled, not streamed
+    assert [m.role for m in llm.calls[1][0]] == ["system", "user"]
+    assert events[-1].data["usage"]["retried_without_history"] is True
+
+
+async def test_second_copy_is_shown_rather_than_asking_forever():
+    llm = FakeLLM(DASH)
+    events = await collect(ChatOrchestrator(llm, None, "BASE", OPTIONS), "why", COPY_HISTORY)
+    assert tokens(events) == DASH and len(llm.calls) == 2
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        # same template, different subject within the compared start: not a copy
+        DASH.replace("DIEBATIC", "sodium"),
+        "Yes.",  # too short to judge
+        "I couldn't find any dietary advice related to DIEBATIC in your documents.",
+    ],
+)
+async def test_new_answers_that_resemble_the_previous_one_are_kept(answer):
+    llm = FakeLLM(answer)
+    events = await collect(
+        ChatOrchestrator(llm, None, "BASE", OPTIONS), "and sodium?", COPY_HISTORY
+    )
+    assert tokens(events) == answer and len(llm.calls) == 1
+    assert events[-1].data["usage"]["retried_without_history"] is False
+
+
+async def test_garbled_start_is_asked_again_without_history():
+    def reply(messages):
+        if any(m.role == "assistant" for m in messages):
+            return (
+                "Yourpanding to help7ithway.sniets -3oclaimi and-to this document. More text here."
+            )
+        return "I couldn't find anything about diabetes in your documents."
+
+    llm = FakeLLM(reply)
+    events = await collect(
+        ChatOrchestrator(llm, None, "BASE", OPTIONS), "what about diabetes?", COPY_HISTORY
+    )
+    assert tokens(events) == "I couldn't find anything about diabetes in your documents."
+    assert len(llm.calls) == 2 and events[-1].data["usage"]["retried_without_history"] is True
